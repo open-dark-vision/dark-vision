@@ -1,11 +1,11 @@
-name: style
+name: Check style
 
 on:
   - push
   - workflow_dispatch
 
 jobs:
-  build:
+  style:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
