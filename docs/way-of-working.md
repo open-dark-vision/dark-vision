@@ -1,9 +1,6 @@
 # Way of working
 ## Code styleguide
-- `black` **recommended** and **enforced**
-- `flake8` with `wemake-python` plugin **recommended**
-- `mypy` **recommended**
-- `isort`  **recommended**
+- `black` + `flake8` with selected plugins
 
 ## Notebooks
 - do not push notebooks to repo (it looks ugly in diff)
