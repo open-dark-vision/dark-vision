@@ -7,10 +7,11 @@ from src.datasets.meta import PairedImageInput  # noqa: I900
 
 
 class LOL(Dataset):
-    def __init__(self, root: Path):
-        self.images = sorted((root / "low/").glob("*.png"), key=lambda x: int(x.stem))
+    def __init__(self, root: Path, train: bool = True):
+        path = root / ("our485" if train else "eval15")
 
-        self.targets = sorted((root / "high/").glob("*.png"), key=lambda x: int(x.stem))
+        self.images = sorted((path / "low/").glob("*.png"), key=lambda x: int(x.stem))
+        self.targets = sorted((path / "high/").glob("*.png"), key=lambda x: int(x.stem))
 
     def __len__(self) -> int:
         return len(self.images)
@@ -23,6 +24,6 @@ class LOL(Dataset):
 
 
 if __name__ == "__main__":
-    ds = LOL(Path("data/LOL-fair/our485"))
+    ds = LOL(Path("data/LOL-fair"), train=True)
     print(ds[0])
     print(len(ds))
