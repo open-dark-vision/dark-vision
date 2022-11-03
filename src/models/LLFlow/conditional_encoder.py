@@ -3,7 +3,7 @@ from typing import Dict, Tuple
 import torch
 
 from src.models.LLFlow.rrdb import RRDB  # noqa: I900
-from src.models.LLFlow.utils import Interpolate, image_preprocessing  # noqa: I900
+from src.models.LLFlow.utils import Interpolate  # noqa: I900
 
 
 class ConditionalEncoder(torch.nn.Module):
@@ -78,25 +78,3 @@ class ConditionalEncoder(torch.nn.Module):
             "feature_maps_8": feature_maps_8,
             "color_map": color_map,
         }
-
-
-if __name__ == "__main__":
-    from timeit import default_timer as timer
-
-    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Using {DEVICE}")
-
-    model = ConditionalEncoder(
-        channels_in=3, channels_middle=64, rrdb_number=24, rrdb_channels=32
-    ).to(DEVICE)
-    X = torch.zeros((1, 3, 400, 600), device=DEVICE)
-
-    start = timer()
-    output = model(X)
-    stop = timer()
-
-    print("Input shape:", X.size())
-    for k, v in output.items():
-        print(k, v.size())
-
-    print(f"Conditional encoder forward time: {stop - start:.2f} sec")
