@@ -57,13 +57,3 @@ class LOL(Dataset):
             image, target = self.pair_transform(image, target)
 
         return PairedImageInput(image=image, target=target)
-
-
-if __name__ == "__main__":
-    from timeit import default_timer as timer
-
-    ds = LOL(Path("data/LOL-fair"), train=True, preload=False)
-    start = timer()
-    print(f'Image size: {ds[0]["image"].size()}')
-    stop = timer()
-    print(f"get item time: {stop - start:.5f} sec")

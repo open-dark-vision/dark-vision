@@ -1,0 +1,7 @@
+dataset:
+  path: "data/LOL-fair"
+  batch_size: 16
+  val_size: 0.05
+  preload: False
+  pin_memory: False
+  num_workers: 0
