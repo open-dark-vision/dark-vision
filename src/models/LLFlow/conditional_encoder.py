@@ -3,7 +3,7 @@ from typing import Dict, Tuple
 import torch
 
 from src.models.LLFlow.rrdb import RRDB  # noqa: I900
-from src.models.LLFlow.utils import Interpolate  # noqa: I900
+from src.models.LLFlow.utils import Interpolate, image_preprocessing  # noqa: I900
 
 
 class ConditionalEncoder(torch.nn.Module):
@@ -51,10 +51,7 @@ class ConditionalEncoder(torch.nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
-        """
-        TODO:
-        call a function which does: HE, color map, noise map and concatenate them all
-        """
+        x = image_preprocessing(x)
 
         feature_maps_1 = self.first_submodule(x)
 
