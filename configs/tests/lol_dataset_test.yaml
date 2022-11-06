@@ -5,3 +5,19 @@ dataset:
   preload: False
   pin_memory: False
   num_workers: 0
+
+  train_transform:
+    additional_targets:
+      - target
+    pipeline:
+      - name: image_histogram_equalize
+      - name: rotate
+        p: 0.9
+      - name: random_crop
+        height: 160
+        width: 160
+      - name: horizontal_flip
+        p: 0.5
+      - name: vertical_flip
+        p: 0.5
+      - name: to_tensor

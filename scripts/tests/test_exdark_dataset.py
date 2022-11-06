@@ -4,8 +4,6 @@ Run it to make sure that your ExDark dataset configs are ok.
 import argparse
 from timeit import default_timer as timer
 
-import albumentations as A
-from albumentations.pytorch.transforms import ToTensorV2
 from omegaconf import OmegaConf
 
 from src.datamodules import ExDarkDataModule  # noqa: I900
@@ -19,10 +17,8 @@ if __name__ == "__main__":
     conf = OmegaConf.load(args.config)
     print("Configs:\n", OmegaConf.to_yaml(conf), "", sep="*" * 50 + "\n")
 
-    transform = A.Compose([A.Resize(512, 512), ToTensorV2()])
-
     setup_timer_start = timer()
-    exdark_dm = ExDarkDataModule(conf["dataset"], transform, transform)
+    exdark_dm = ExDarkDataModule(conf["dataset"])
     exdark_dm.setup()
     setup_timer_stop = timer()
 

@@ -1,18 +1,15 @@
 from pathlib import Path
-from typing import Callable, Dict, Optional
+from typing import Dict, Optional
 
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 
 from src.datasets import Supplementary  # noqa: I900
+from src.transforms.assemble_transform import create_transform  # noqa: I900
 
 
 class SupplementaryDataModule(pl.LightningDataModule):
-    def __init__(
-        self,
-        config: Dict,
-        test_transform: Optional[Callable] = None,
-    ):
+    def __init__(self, config: Dict):
         super().__init__()
         self.data_path = Path(config["path"])
         self.dataset_name = config["name"]
@@ -21,7 +18,11 @@ class SupplementaryDataModule(pl.LightningDataModule):
         self.pin_memory = config["pin_memory"]
         self.num_workers = config["num_workers"]
 
-        self.test_transform = test_transform
+        self.test_transform = (
+            create_transform(**config["test_transform"])
+            if "test_transform" in config
+            else None
+        )
 
     def setup(self, stage: Optional[str] = None):
         self.supplementary = Supplementary(

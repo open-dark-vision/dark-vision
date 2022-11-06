@@ -9,3 +9,21 @@ dataset:
 
   pin_memory: False
   num_workers: 0
+
+  train_transform:
+    additional_targets:
+      - target
+    pipeline:
+      - name: resize
+        height: 512
+        width: 512
+      - name: to_tensor
+
+  test_transform:
+    additional_targets:
+      - target
+    pipeline:
+      - name: resize
+        height: 512
+        width: 512
+      - name: to_tensor

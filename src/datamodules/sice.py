@@ -1,19 +1,15 @@
 from pathlib import Path
-from typing import Callable, Dict, Optional
+from typing import Dict, Optional
 
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader, random_split
 
 from src.datasets import SICE  # noqa: I900
+from src.transforms.assemble_transform import create_transform  # noqa: I900
 
 
 class SICEDataModule(pl.LightningDataModule):
-    def __init__(
-        self,
-        config: Dict,
-        train_transform: Optional[Callable] = None,
-        test_transform: Optional[Callable] = None,
-    ):
+    def __init__(self, config: Dict):
         super().__init__()
         self.data_path = Path(config["path"])
         self.batch_size = config["batch_size"]
@@ -26,8 +22,16 @@ class SICEDataModule(pl.LightningDataModule):
         self.pin_memory = config["pin_memory"]
         self.num_workers = config["num_workers"]
 
-        self.train_transform = train_transform
-        self.test_transform = test_transform
+        self.train_transform = (
+            create_transform(**config["train_transform"])
+            if "train_transform" in config
+            else None
+        )
+        self.test_transform = (
+            create_transform(**config["test_transform"])
+            if "test_transform" in config
+            else None
+        )
 
     def setup(self, stage: Optional[str] = None):
         sice_full = SICE(

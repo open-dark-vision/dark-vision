@@ -4,8 +4,6 @@ Run it to make sure that your Supplemntary dataset configs are ok.
 import argparse
 from timeit import default_timer as timer
 
-import albumentations as A
-from albumentations.pytorch.transforms import ToTensorV2
 from omegaconf import OmegaConf
 
 from src.datamodules import SupplementaryDataModule  # noqa: I900
@@ -20,14 +18,12 @@ if __name__ == "__main__":
     conf = OmegaConf.load(args.config)
     print("Configs:\n", OmegaConf.to_yaml(conf), "", sep="*" * 50 + "\n")
 
-    transform = A.Compose([A.Resize(512, 512), ToTensorV2()])
-
     for dataset in SupplementaryNames:
         print(f"Testing {dataset.name} dataset")
         conf["dataset"]["name"] = dataset.value
 
         setup_timer_start = timer()
-        supplementary_dm = SupplementaryDataModule(conf["dataset"], transform)
+        supplementary_dm = SupplementaryDataModule(conf["dataset"])
         supplementary_dm.setup()
         setup_timer_stop = timer()
 

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Optional
 
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
@@ -14,7 +14,7 @@ class LOL(Dataset):
         self,
         root: Path,
         train: bool = True,
-        pair_transform: Optional[Callable] = None,
+        pair_transform: Optional[A.Compose] = None,
         preload: bool = False,
     ):
         self.pair_transform = (
