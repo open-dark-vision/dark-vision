@@ -1,10 +1,12 @@
 from pathlib import Path
 from typing import Callable, Optional
 
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import Dataset
-from torchvision.io import read_image
 
 from src.datasets.meta import PairedImageInput  # noqa: I900
+from src.utils.image import read_image_cv2  # noqa: I900
 
 
 class LOL(Dataset):
@@ -15,7 +17,14 @@ class LOL(Dataset):
         pair_transform: Optional[Callable] = None,
         preload: bool = False,
     ):
-        self.pair_transform = pair_transform
+        self.pair_transform = (
+            pair_transform
+            if pair_transform is not None
+            else A.Compose(
+                [ToTensorV2()],
+                additional_targets={"target": "image"},
+            )
+        )
 
         path = root / ("our485" if train else "eval15")
 
@@ -35,8 +44,8 @@ class LOL(Dataset):
         self.loaded_targets_ = []
 
         for index in range(len(self)):
-            self.loaded_images_.append(read_image(str(self.image_names[index])))
-            self.loaded_targets_.append(read_image(str(self.image_names[index])))
+            self.loaded_images_.append(read_image_cv2(self.image_names[index]))
+            self.loaded_targets_.append(read_image_cv2(self.image_names[index]))
 
     def __len__(self) -> int:
         return len(self.image_names)
@@ -45,15 +54,15 @@ class LOL(Dataset):
         image = (
             self.loaded_images_[index]
             if self.loaded
-            else read_image(str(self.image_names[index]))
+            else read_image_cv2(self.image_names[index])
         )
         target = (
             self.loaded_targets_[index]
             if self.loaded
-            else read_image(str(self.target_names[index]))
+            else read_image_cv2(self.target_names[index])
         )
 
-        if self.pair_transform:
-            image, target = self.pair_transform(image, target)
+        transformed = self.pair_transform(image=image, target=target)
+        image, target = transformed["image"], transformed["target"]
 
         return PairedImageInput(image=image, target=target)

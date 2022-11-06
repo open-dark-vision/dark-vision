@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import torch
+from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import Dataset
 
 from src.datasets.meta import AnnotatedBBoxImageInput  # noqa: I900
@@ -24,7 +25,6 @@ EXDARK_LABEL2ID = {
 
 class ExDark(Dataset):
     def __init__(self, root: Path, train: bool = True, transform=None):
-        super().__init__()
         root = root / ("Train" if train else "Test")
         self.annotation_root = root / "Annotations"
         self.images_paths = [
@@ -33,7 +33,7 @@ class ExDark(Dataset):
             if "Annotations" not in str(path)
         ]
 
-        self.transform = transform
+        self.transform = transform if transform is not None else ToTensorV2()
 
     def read_annotation(self, img_path) -> tuple[torch.Tensor, torch.Tensor]:
         annotation_path = (
@@ -62,8 +62,7 @@ class ExDark(Dataset):
         image = read_image_cv2(str(image_path))
         labels, bboxes = self.read_annotation(image_path)
 
-        if self.transform is not None:
-            image = self.transform(image=image)["image"]
+        image = self.transform(image=image)["image"]
 
         return AnnotatedBBoxImageInput(image=image, labels=labels, bboxes=bboxes)
 

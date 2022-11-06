@@ -25,9 +25,6 @@ class ExDarkDataModule(pl.LightningDataModule):
         self.train_transform = train_transform
         self.test_transform = test_transform
 
-    def prepare_data(self) -> None:
-        pass
-
     def setup(self, stage: Optional[str] = None):
         exdark_full = ExDark(
             self.data_path,

@@ -26,9 +26,6 @@ class LOLDataModule(pl.LightningDataModule):
         self.train_transform = train_transform
         self.test_transform = test_transform
 
-    def prepare_data(self) -> None:
-        pass
-
     def setup(self, stage: Optional[str] = None):
         LOL_full = LOL(
             self.data_path,

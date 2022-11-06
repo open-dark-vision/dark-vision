@@ -3,7 +3,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Callable, Optional
 
+import albumentations as A
 import numpy as np
+from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import Dataset
 
 from src.datasets.meta import PairedImageInput  # noqa: I900
@@ -75,7 +77,14 @@ class SICE(Dataset):
     ):
         self.root = root / ("Train" if train else "Test")
         self.pair_selector = PairSelector(pair_selection_method, max_exposure_ratio)
-        self.pair_transform = pair_transform
+        self.pair_transform = (
+            pair_transform
+            if pair_transform is not None
+            else A.Compose(
+                [ToTensorV2()],
+                additional_targets={"target": "image"},
+            )
+        )
 
         self.images = sorted(
             (self.root / "Images").glob("*"), key=lambda x: int(x.stem)
@@ -100,8 +109,7 @@ class SICE(Dataset):
         image = read_image_cv2(image_path)
         target = read_image_cv2(target_path)
 
-        if self.pair_transform:
-            transformed = self.pair_transform(image=image, target=target)
-            image, target = transformed["image"], transformed["target"]
+        transformed = self.pair_transform(image=image, target=target)
+        image, target = transformed["image"], transformed["target"]
 
         return PairedImageInput(image=image, target=target)
