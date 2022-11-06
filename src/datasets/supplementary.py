@@ -32,6 +32,8 @@ class Supplementary(Dataset):
             if dataset == dataset_name:
                 return root / dataset.name
 
+        raise ValueError(f"Dataset {dataset_name} not found in Supplementary datasets")
+
     def __len__(self) -> int:
         return len(self.images_paths)
 
