@@ -1,9 +1,11 @@
 """
-Run it to make sure that your LOL dataset configs are ok.
+Run it to make sure that configs support pair transforms.
 """
 import argparse
 from timeit import default_timer as timer
 
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
 from omegaconf import OmegaConf
 
 from src.datamodules import LOLDataModule  # noqa: I900
@@ -17,8 +19,15 @@ if __name__ == "__main__":
     conf = OmegaConf.load(args.config)
     print("Configs:\n", OmegaConf.to_yaml(conf), "", sep="*" * 50 + "\n")
 
+    train_transform = A.Compose([
+        A.RandomCrop(height=200, width=200),
+        A.HorizontalFlip(),
+        A.VerticalFlip(),
+        ToTensorV2()
+    ], additional_targets={'target': 'image'})
+
     setup_timer_start = timer()
-    lol_dm = LOLDataModule(conf["dataset"])
+    lol_dm = LOLDataModule(conf["dataset"], train_transform=train_transform)
     lol_dm.setup()
     setup_timer_stop = timer()
 
