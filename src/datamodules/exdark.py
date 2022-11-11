@@ -1,19 +1,15 @@
 from pathlib import Path
-from typing import Callable, Dict, Optional
+from typing import Dict, Optional
 
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader, random_split
 
 from src.datasets import ExDark  # noqa: I900
+from src.transforms.assemble_transform import load_transforms  # noqa: I900
 
 
 class ExDarkDataModule(pl.LightningDataModule):
-    def __init__(
-        self,
-        config: Dict,
-        train_transform: Optional[Callable] = None,
-        test_transform: Optional[Callable] = None,
-    ):
+    def __init__(self, config: Dict):
         super().__init__()
         self.data_path = Path(config["path"])
         self.batch_size = config["batch_size"]
@@ -22,8 +18,9 @@ class ExDarkDataModule(pl.LightningDataModule):
         self.pin_memory = config["pin_memory"]
         self.num_workers = config["num_workers"]
 
-        self.train_transform = train_transform
-        self.test_transform = test_transform
+        self.train_transform, self.test_transform = load_transforms(
+            config["augmentation"]
+        )
 
     def setup(self, stage: Optional[str] = None):
         exdark_full = ExDark(

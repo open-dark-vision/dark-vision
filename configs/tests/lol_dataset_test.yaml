@@ -5,3 +5,4 @@ dataset:
   preload: False
   pin_memory: False
   num_workers: 0
+  augmentation: 'pair_transform_example'
