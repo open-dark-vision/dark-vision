@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 
 from src.datasets import Supplementary  # noqa: I900
-from src.transforms.assemble_transform import create_transform  # noqa: I900
+from src.transforms.assemble_transform import load_transforms  # noqa: I900
 
 
 class SupplementaryDataModule(pl.LightningDataModule):
@@ -18,11 +18,7 @@ class SupplementaryDataModule(pl.LightningDataModule):
         self.pin_memory = config["pin_memory"]
         self.num_workers = config["num_workers"]
 
-        self.test_transform = (
-            create_transform(**config["test_transform"])
-            if "test_transform" in config
-            else None
-        )
+        _, self.test_transform = load_transforms(config["augmentation"])
 
     def setup(self, stage: Optional[str] = None):
         self.supplementary = Supplementary(

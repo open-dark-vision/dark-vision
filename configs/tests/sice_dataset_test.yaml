@@ -2,6 +2,7 @@ dataset:
   path: "data/SICE"
   batch_size: 16
   val_size: 0.1
+  augmentation: 'pair_transform_example'
 
   max_exposure_ratio: 1.0
   train_pair_selection_method: "random_target"
@@ -9,21 +10,3 @@ dataset:
 
   pin_memory: False
   num_workers: 0
-
-  train_transform:
-    additional_targets:
-      - target
-    pipeline:
-      - name: resize
-        height: 512
-        width: 512
-      - name: to_tensor
-
-  test_transform:
-    additional_targets:
-      - target
-    pipeline:
-      - name: resize
-        height: 512
-        width: 512
-      - name: to_tensor

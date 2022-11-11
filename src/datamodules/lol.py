@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader, random_split
 
 from src.datasets.lol import LOL  # noqa: I900
-from src.transforms.assemble_transform import create_transform  # noqa: I900
+from src.transforms.assemble_transform import load_transforms  # noqa: I900
 
 
 class LOLDataModule(pl.LightningDataModule):
@@ -19,15 +19,8 @@ class LOLDataModule(pl.LightningDataModule):
         self.pin_memory = config["pin_memory"]
         self.num_workers = config["num_workers"]
 
-        self.train_transform = (
-            create_transform(**config["train_transform"])
-            if "train_transform" in config
-            else None
-        )
-        self.test_transform = (
-            create_transform(**config["test_transform"])
-            if "test_transform" in config
-            else None
+        self.train_transform, self.test_transform = load_transforms(
+            config["augmentation"]
         )
 
     def setup(self, stage: Optional[str] = None):
