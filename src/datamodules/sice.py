@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader, random_split
 
 from src.datasets import SICE  # noqa: I900
-from src.transforms.assemble_transform import load_transforms  # noqa: I900
+from src.transforms import load_transforms  # noqa: I900
 
 
 class SICEDataModule(pl.LightningDataModule):
@@ -22,9 +22,7 @@ class SICEDataModule(pl.LightningDataModule):
         self.pin_memory = config["pin_memory"]
         self.num_workers = config["num_workers"]
 
-        self.train_transform, self.test_transform = load_transforms(
-            config["augmentation"]
-        )
+        self.train_transform, self.test_transform = load_transforms(config["transform"])
 
     def setup(self, stage: Optional[str] = None):
         sice_full = SICE(

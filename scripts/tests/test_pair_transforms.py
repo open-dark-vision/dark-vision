@@ -1,13 +1,13 @@
 """
 Run it to make sure that configs support pair transforms.
 """
-import argparse
 from timeit import default_timer as timer
 
 import matplotlib.pyplot as plt
 import torch
 from omegaconf import OmegaConf
 
+from src.configs.tests import lol_dataset_test_config as cfg  # noqa: I900
 from src.datamodules import LOLDataModule  # noqa: I900
 
 
@@ -26,16 +26,11 @@ def plot_batch(images: torch.Tensor, targets: torch.Tensor):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config", type=str, default="configs/tests/lol_dataset_test.yaml"
-    )
-    args = parser.parse_args()
-    conf = OmegaConf.load(args.config)
-    print("Configs:\n", OmegaConf.to_yaml(conf), "", sep="*" * 50 + "\n")
+    cfg = OmegaConf.structured(cfg)
+    print("Configs:\n", OmegaConf.to_yaml(cfg), "", sep="*" * 50 + "\n")
 
     setup_timer_start = timer()
-    lol_dm = LOLDataModule(conf["dataset"])
+    lol_dm = LOLDataModule(cfg["dataset"])
     lol_dm.setup()
     setup_timer_stop = timer()
 

@@ -1,25 +1,15 @@
-from enum import Enum
 from pathlib import Path
 
 from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import Dataset
 
+from src.configs.base import SupplementaryDataset  # noqa: I900
 from src.datasets.meta import Image  # noqa: I900
 from src.utils.image import read_image_cv2  # noqa: I900
 
 
-class SupplementaryNames(str, Enum):
-    DICM = "dicm"
-    FUSION = "fusion"
-    LIME = "lime"
-    LOW = "low"
-    MEF = "mef"
-    NPE = "npe"
-    VV = "vv"
-
-
 class Supplementary(Dataset):
-    def __init__(self, root: Path, dataset: SupplementaryNames, transform=None):
+    def __init__(self, root: Path, dataset: SupplementaryDataset, transform=None):
         self.root = self.select_dataset(root, dataset)
         self.images_paths = list(
             self.root.glob("**/*.[JPG PNG jpg png JPEG jpeg bmp]*")
@@ -28,7 +18,7 @@ class Supplementary(Dataset):
         self.transform = transform if transform is not None else ToTensorV2()
 
     def select_dataset(self, root: Path, dataset_name: str) -> Path:
-        for dataset in SupplementaryNames:
+        for dataset in SupplementaryDataset:
             if dataset == dataset_name:
                 return root / dataset.name
 

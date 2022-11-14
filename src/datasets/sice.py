@@ -1,5 +1,4 @@
 import random
-from enum import Enum
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -8,21 +7,9 @@ import numpy as np
 from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import Dataset
 
+from src.configs.base import PairSelectionMethod  # noqa: I900
 from src.datasets.meta import PairedImageInput  # noqa: I900
 from src.utils.image import read_image_cv2  # noqa: I900
-
-
-class PairSelectionMethod(str, Enum):
-    """Pair selection method for SICE dataset.
-
-    RANDOM_NEXT: Select a random image from a sequence and its successor.
-    RANDOM_TARGET: Select a random image from a sequence and a ground truth image.
-    HALFEXP_TARGET: Select a -1ev image from a sequence and a ground truth image
-    """
-
-    RANDOM_NEXT = "random_next"
-    RANDOM_TARGET = "random_target"
-    HALFEXP_TARGET = "halfexp_target"
 
 
 class PairSelector:

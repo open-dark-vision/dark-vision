@@ -1,29 +1,24 @@
 """
 Run it to make sure that your Supplemntary dataset configs are ok.
 """
-import argparse
 from timeit import default_timer as timer
 
 from omegaconf import OmegaConf
 
+from src.configs.base import SupplementaryDataset  # noqa: I900
+from src.configs.tests import supplementary_dataset_test_config as cfg  # noqa: I900
 from src.datamodules import SupplementaryDataModule  # noqa: I900
-from src.datasets.supplementary import SupplementaryNames  # noqa: I900
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config", type=str, default="configs/tests/supplementary_dataset_test.yaml"
-    )
-    args = parser.parse_args()
-    conf = OmegaConf.load(args.config)
-    print("Configs:\n", OmegaConf.to_yaml(conf), "", sep="*" * 50 + "\n")
+    cfg = OmegaConf.structured(cfg)
+    print("Configs:\n", OmegaConf.to_yaml(cfg), "", sep="*" * 50 + "\n")
 
-    for dataset in SupplementaryNames:
+    for dataset in SupplementaryDataset:
         print(f"Testing {dataset.name} dataset")
-        conf["dataset"]["name"] = dataset.value
+        cfg["dataset"]["name"] = dataset
 
         setup_timer_start = timer()
-        supplementary_dm = SupplementaryDataModule(conf["dataset"])
+        supplementary_dm = SupplementaryDataModule(cfg["dataset"])
         supplementary_dm.setup()
         setup_timer_stop = timer()
 

@@ -1,6 +1,0 @@
-dataset:
-  path: "data/Supplementary"
-  batch_size: 16
-  pin_memory: False
-  num_workers: 0
-  augmentation: 'supplementary_dataset_transform_example'
