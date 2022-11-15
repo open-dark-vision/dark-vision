@@ -1,4 +1,6 @@
-from .exdark_dataset_test import exdark_dataset_test_config  # noqa: F401
-from .lol_dataset_test import lol_dataset_test_config  # noqa: F401
-from .sice_dataset_test import sice_dataset_test_config  # noqa: F401
-from .supplementary_dataset_test import supplementary_dataset_test_config  # noqa: F401
+from .datasets import (  # noqa: F401
+    exdark_dataset_test_config,
+    lol_dataset_test_config,
+    sice_dataset_test_config,
+    supplementary_dataset_test_config,
+)
