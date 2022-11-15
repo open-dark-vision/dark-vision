@@ -1,7 +1,0 @@
-dataset:
-  path: "data/ExDark"
-  batch_size: 16
-  val_size: 0.05
-  pin_memory: False
-  num_workers: 0
-  augmentation: 'single_image_transform_example'

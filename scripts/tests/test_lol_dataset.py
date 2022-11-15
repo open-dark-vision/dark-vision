@@ -1,24 +1,19 @@
 """
 Run it to make sure that your LOL dataset configs are ok.
 """
-import argparse
 from timeit import default_timer as timer
 
 from omegaconf import OmegaConf
 
+from src.configs.tests import lol_dataset_test_config as cfg  # noqa: I900
 from src.datamodules import LOLDataModule  # noqa: I900
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config", type=str, default="configs/tests/lol_dataset_test.yaml"
-    )
-    args = parser.parse_args()
-    conf = OmegaConf.load(args.config)
-    print("Configs:\n", OmegaConf.to_yaml(conf), "", sep="*" * 50 + "\n")
+    cfg = OmegaConf.structured(cfg)
+    print("Configs:\n", OmegaConf.to_yaml(cfg), "", sep="*" * 50 + "\n")
 
     setup_timer_start = timer()
-    lol_dm = LOLDataModule(conf["dataset"])
+    lol_dm = LOLDataModule(cfg["dataset"])
     lol_dm.setup()
     setup_timer_stop = timer()
 
