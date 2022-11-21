@@ -12,6 +12,10 @@ exdark_dataset_test_config = ExperimentConfig(
     dataset=ExDarkDatasetConfig(
         num_workers=0,
         pin_memory=False,
+        transform=TransformConfig(
+            image_size=128,
+            pair_transform=False,
+        ),
     ),
 )
 
