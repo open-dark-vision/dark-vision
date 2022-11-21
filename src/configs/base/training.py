@@ -1,15 +1,9 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from omegaconf import MISSING
 
-from .types import Optimizer, Scheduler
-
-
-@dataclass
-class OptimizerConfig:
-    name: Optimizer = MISSING
-    lr: float = 1e-3
-    weight_decay: float = 1e-2
+from .types import Loss, Optimizer, Scheduler
 
 
 @dataclass
@@ -20,6 +14,14 @@ class SchedulerConfig:
 
 
 @dataclass
+class OptimizerConfig:
+    name: Optimizer = MISSING
+    lr: float = 1e-3
+    weight_decay: float = 1e-2
+    scheduler: Optional[SchedulerConfig] = None
+
+
+@dataclass
 class LossConfig:
-    name: str = MISSING  # TODO: what losses do we have?
+    name: Loss = MISSING
     reduction: str = "mean"

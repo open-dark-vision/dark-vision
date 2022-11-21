@@ -1,1 +1,1 @@
-from .iat import IAT  # noqa: F401
+from .iat import IAT, LitIAT  # noqa: F401

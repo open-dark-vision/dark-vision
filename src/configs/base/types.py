@@ -1,8 +1,13 @@
 from enum import Enum
 
 
+class Loss(str, Enum):
+    L1 = "l1"
+
+
 class Transform(str, Enum):
     DEVELOPMENT = "development"
+    IAT = "iat"
 
 
 class Optimizer(str, Enum):
