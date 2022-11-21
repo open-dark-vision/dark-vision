@@ -13,25 +13,23 @@ from src.configs.base import (  # noqa: I900
 )
 
 iat_config = ExperimentConfig(
-    name="iat",
+    name="iat-lol",
     dataset=LOLDatasetConfig(
-        num_workers=0,
-        pin_memory=False,
+        num_workers=12,
+        pin_memory=True,
         transform=TransformConfig(
             name=Transform.IAT, image_size=256, pair_transform=True
         ),
-        batch_size=4,
+        batch_size=8,
     ),
     model=IATModelConfig(),
     optimizer=OptimizerConfig(
         name=Optimizer.ADAMW,
-        lr=1e-3,
-        weight_decay=1e-4,
-        scheduler=SchedulerConfig(
-            name=Scheduler.ONE_CYCLE, interval="step", frequency=1
-        ),
+        lr=2e-4,
+        weight_decay=4e-4,
+        scheduler=SchedulerConfig(name=Scheduler.COSINE, frequency=1),
     ),
     loss=LossConfig(name=Loss.L1, reduction="mean"),
-    device="cpu",
-    epochs=3,
+    device="cuda",
+    epochs=200,
 )

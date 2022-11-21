@@ -9,7 +9,6 @@ from .types import Loss, Optimizer, Scheduler
 @dataclass
 class SchedulerConfig:
     name: Scheduler = MISSING
-    interval: str = MISSING
     frequency: int = MISSING
 
 

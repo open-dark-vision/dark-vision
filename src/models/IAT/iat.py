@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import pytorch_lightning as pl
 import torch
 import torchmetrics
 from einops import einsum, rearrange
+from omegaconf import OmegaConf
 from torch import nn
 
 from src.models.IAT.global_net import GlobalNet  # noqa: I900
@@ -98,17 +101,13 @@ class LitIAT(pl.LightningModule):
     def configure_optimizers(self):
         return get_optimizers(self, self.config.optimizer)
 
+    def on_train_start(self):
+        self.logger.log_hyperparams(self.config)
 
-if __name__ == "__main__":
-    from omegaconf import OmegaConf
-
-    cfg = OmegaConf.create({"in_dim": 3, "task_type": "lol", "layers_type": "ccc"})
-    device = "mps"
-    img = torch.Tensor(5, 3, 400, 600).to(device)
-    model = LitIAT(config=cfg).to(device)
-
-    print(model(img)[-1].shape)
-    # net = IAT(layers_type="cct").to(device)
-    # print("total parameters:", sum(param.numel() for param in net.parameters()))
-    # _, _, high = net(img)
-    # print(high.shape)
+        config_path = (
+            Path(self.logger.experiment.project)
+            / self.logger.experiment.id
+            / "config.yaml"
+        )
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        OmegaConf.save(self.config, config_path)

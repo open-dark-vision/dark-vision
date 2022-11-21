@@ -1,5 +1,4 @@
 import pytorch_lightning as pl
-import torch
 from omegaconf import OmegaConf
 from pytorch_lightning.callbacks import (
     LearningRateMonitor,
@@ -8,9 +7,9 @@ from pytorch_lightning.callbacks import (
 )
 from pytorch_lightning.loggers import WandbLogger
 
-from src.configs.experiments import iat_config
-from src.datamodules import LOLDataModule
-from src.models import LitIAT
+from src.configs.experiments import iat_config  # noqa: I900
+from src.datamodules import LOLDataModule  # noqa: I900
+from src.models import LitIAT  # noqa: I900
 
 cfg = OmegaConf.structured(iat_config)
 lol_dm = LOLDataModule(config=cfg.dataset)
@@ -36,6 +35,5 @@ trainer = pl.Trainer(
     callbacks=callbacks,
     logger=logger,
     max_epochs=cfg.epochs,
-    log_every_n_steps=1,
 )
 trainer.fit(model, lol_dm)
