@@ -10,6 +10,11 @@ def load_transforms(transform_config: TransformConfig):
             image_size=transform_config.image_size,
             pair_transform=transform_config.pair_transform,
         )
+    elif transform_config.name == Transform.IAT:
+        transforms = iat_transform(
+            image_size=transform_config.image_size,
+            pair_transform=transform_config.pair_transform,
+        )
     else:
         raise ValueError(f"Transform {transform_config.name} not found.")
 
@@ -27,3 +32,27 @@ def development_transform(image_size: int, pair_transform: bool = False):
     )
 
     return transform, transform
+
+
+def iat_transform(image_size: int = 256, pair_transform: bool = True):
+    train_transform = A.Compose(
+        [
+            A.RandomCrop(image_size, image_size, always_apply=True),
+            A.HorizontalFlip(p=0.5),
+            A.VerticalFlip(p=0.5),
+            A.Normalize(mean=0, std=1),
+            ToTensorV2(),
+        ],
+        additional_targets={"target": "image"} if pair_transform else {},
+    )
+
+    test_transform = A.Compose(
+        [
+            # A.Resize(image_size, image_size, always_apply=True),
+            A.Normalize(mean=0, std=1),
+            ToTensorV2(),
+        ],
+        additional_targets={"target": "image"} if pair_transform else {},
+    )
+
+    return train_transform, test_transform

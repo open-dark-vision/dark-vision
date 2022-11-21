@@ -4,7 +4,7 @@ from omegaconf import MISSING
 
 from .data import DatasetConfig
 from .model import ModelConfig
-from .training import LossConfig, OptimizerConfig, SchedulerConfig
+from .training import LossConfig, OptimizerConfig
 
 
 @dataclass
@@ -14,10 +14,8 @@ class ExperimentConfig:
     dataset: DatasetConfig = MISSING
     model: ModelConfig = MISSING
     optimizer: OptimizerConfig = MISSING
-    scheduler: SchedulerConfig = MISSING
     loss: LossConfig = MISSING
 
     seed: int = 42
+    epochs: int = 10
     device: str = "cuda"
-    log_dir: str = "wandb"
-    checkpoint_dir: str = "checkpoints"
