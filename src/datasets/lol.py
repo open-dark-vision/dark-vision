@@ -1,11 +1,12 @@
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import albumentations as A
 import pytorch_lightning as pl
 from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import DataLoader, Dataset, random_split
 
+from src.configs.base import LOLDatasetConfig  # noqa: I900
 from src.datasets.meta import PairedImageInput  # noqa: I900
 from src.transforms import load_transforms  # noqa: I900
 from src.utils.image import read_image_cv2  # noqa: I900
@@ -76,22 +77,17 @@ class LOL(Dataset):
 
 
 class LOLDataModule(pl.LightningDataModule):
-    def __init__(self, config: Dict):
+    def __init__(self, config: LOLDatasetConfig):
         super().__init__()
-        self.root = Path(config["path"])
-        self.batch_size = config["batch_size"]
-        self.val_size = config["val_size"]
-        self.preload_dataset = config["preload"]
+        self.root = Path(config.path)
+        self.config = config
 
-        self.pin_memory = config["pin_memory"]
-        self.num_workers = config["num_workers"]
-
-        self.train_transform, self.test_transform = load_transforms(config["transform"])
+        self.train_transform, self.test_transform = load_transforms(config.transform)
 
     def setup(self, stage: Optional[str] = None):
         n_train_images = len(list((self.root / "our485/low/").glob("*.png")))
         train_indices, val_indices = random_split(
-            range(n_train_images), [1 - self.val_size, self.val_size]
+            range(n_train_images), [1 - self.config.val_size, self.config.val_size]
         )
 
         self.train_ds = LOL(
@@ -99,7 +95,7 @@ class LOLDataModule(pl.LightningDataModule):
             indices=train_indices,
             train=True,
             pair_transform=self.train_transform,
-            preload=self.preload_dataset,
+            preload=self.config.preload,
         )
 
         self.val_ds = LOL(
@@ -107,38 +103,38 @@ class LOLDataModule(pl.LightningDataModule):
             indices=val_indices,
             train=True,
             pair_transform=self.test_transform,
-            preload=self.preload_dataset,
+            preload=self.config.preload,
         )
 
         self.test_ds = LOL(
             self.root,
             train=False,
             pair_transform=self.test_transform,
-            preload=self.preload_dataset,
+            preload=self.config.preload,
         )
 
     def train_dataloader(self):
         return DataLoader(
             self.train_ds,
-            batch_size=self.batch_size,
-            pin_memory=self.pin_memory,
-            num_workers=self.num_workers,
+            batch_size=self.config.batch_size,
+            pin_memory=self.config.pin_memory,
+            num_workers=self.config.num_workers,
         )
 
     def val_dataloader(self):
         return DataLoader(
             self.val_ds,
-            batch_size=self.batch_size,
-            pin_memory=self.pin_memory,
-            num_workers=self.num_workers,
+            batch_size=self.config.batch_size,
+            pin_memory=self.config.pin_memory,
+            num_workers=self.config.num_workers,
         )
 
     def test_dataloader(self):
         return DataLoader(
             self.test_ds,
-            batch_size=self.batch_size,
-            pin_memory=self.pin_memory,
-            num_workers=self.num_workers,
+            batch_size=self.config.batch_size,
+            pin_memory=self.config.pin_memory,
+            num_workers=self.config.num_workers,
         )
 
     def predict_dataloader(self):

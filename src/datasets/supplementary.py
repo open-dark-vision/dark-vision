@@ -1,11 +1,14 @@
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import pytorch_lightning as pl
 from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import DataLoader, Dataset
 
-from src.configs.base import SupplementaryDataset  # noqa: I900
+from src.configs.base import (  # noqa: I900
+    SupplementaryDataset,
+    SupplementaryDatasetConfig,
+)
 from src.datasets.meta import Image  # noqa: I900
 from src.transforms import load_transforms  # noqa: I900
 from src.utils.image import read_image_cv2  # noqa: I900
@@ -39,21 +42,17 @@ class Supplementary(Dataset):
 
 
 class SupplementaryDataModule(pl.LightningDataModule):
-    def __init__(self, config: Dict):
+    def __init__(self, config: SupplementaryDatasetConfig):
         super().__init__()
-        self.root = Path(config["path"])
-        self.dataset_name = config["name"]
-        self.batch_size = config["batch_size"]
+        self.root = Path(config.path)
+        self.config = config
 
-        self.pin_memory = config["pin_memory"]
-        self.num_workers = config["num_workers"]
-
-        _, self.test_transform = load_transforms(config["transform"])
+        _, self.test_transform = load_transforms(config.transform)
 
     def setup(self, stage: Optional[str] = None):
         self.test_ds = Supplementary(
             self.root,
-            self.dataset_name,
+            self.config.name,
             transform=self.test_transform,
         )
 
@@ -63,9 +62,9 @@ class SupplementaryDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(
             self.test_ds,
-            batch_size=self.batch_size,
-            pin_memory=self.pin_memory,
-            num_workers=self.num_workers,
+            batch_size=self.config.batch_size,
+            pin_memory=self.config.pin_memory,
+            num_workers=self.config.num_workers,
         )
 
     def predict_dataloader(self):

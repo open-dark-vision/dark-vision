@@ -1,6 +1,6 @@
 import random
 from pathlib import Path
-from typing import Callable, Dict, Optional
+from typing import Callable, Optional
 
 import albumentations as A
 import numpy as np
@@ -8,7 +8,7 @@ import pytorch_lightning as pl
 from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import DataLoader, Dataset, random_split
 
-from src.configs.base import PairSelectionMethod  # noqa: I900
+from src.configs.base import PairSelectionMethod, SICEDatasetConfig  # noqa: I900
 from src.datasets.meta import PairedImageInput  # noqa: I900
 from src.transforms import load_transforms  # noqa: I900
 from src.utils.image import read_image_cv2  # noqa: I900
@@ -110,25 +110,17 @@ class SICE(Dataset):
 
 
 class SICEDataModule(pl.LightningDataModule):
-    def __init__(self, config: Dict):
+    def __init__(self, config: SICEDatasetConfig):
         super().__init__()
-        self.root = Path(config["path"])
-        self.batch_size = config["batch_size"]
-        self.val_size = config["val_size"]
+        self.root = Path(config.path)
+        self.config = config
 
-        self.max_exposure_ratio = config["max_exposure_ratio"]
-        self.train_pair_selection_method = config["train_pair_selection_method"]
-        self.test_pair_selection_method = config["test_pair_selection_method"]
-
-        self.pin_memory = config["pin_memory"]
-        self.num_workers = config["num_workers"]
-
-        self.train_transform, self.test_transform = load_transforms(config["transform"])
+        self.train_transform, self.test_transform = load_transforms(config.transform)
 
     def setup(self, stage: Optional[str] = None):
         n_train_images = len(list((self.root / "Train" / "Images").glob("*")))
         train_indices, val_indices = random_split(
-            range(n_train_images), [1 - self.val_size, self.val_size]
+            range(n_train_images), [1 - self.config.val_size, self.config.val_size]
         )
 
         self.train_ds = SICE(
@@ -136,8 +128,8 @@ class SICEDataModule(pl.LightningDataModule):
             indices=train_indices,
             train=True,
             pair_transform=self.train_transform,
-            max_exposure_ratio=self.max_exposure_ratio,
-            pair_selection_method=self.train_pair_selection_method,
+            max_exposure_ratio=self.config.max_exposure_ratio,
+            pair_selection_method=self.config.train_pair_selection_method,
         )
 
         self.val_ds = SICE(
@@ -145,40 +137,40 @@ class SICEDataModule(pl.LightningDataModule):
             indices=val_indices,
             train=True,
             pair_transform=self.test_transform,
-            max_exposure_ratio=self.max_exposure_ratio,
-            pair_selection_method=self.test_pair_selection_method,
+            max_exposure_ratio=self.config.max_exposure_ratio,
+            pair_selection_method=self.config.test_pair_selection_method,
         )
 
         self.test_ds = SICE(
             self.root,
             train=False,
             pair_transform=self.test_transform,
-            max_exposure_ratio=self.max_exposure_ratio,
-            pair_selection_method=self.test_pair_selection_method,
+            max_exposure_ratio=self.config.max_exposure_ratio,
+            pair_selection_method=self.config.test_pair_selection_method,
         )
 
     def train_dataloader(self):
         return DataLoader(
             self.train_ds,
-            batch_size=self.batch_size,
-            pin_memory=self.pin_memory,
-            num_workers=self.num_workers,
+            batch_size=self.config.batch_size,
+            pin_memory=self.config.pin_memory,
+            num_workers=self.config.num_workers,
         )
 
     def val_dataloader(self):
         return DataLoader(
             self.val_ds,
-            batch_size=self.batch_size,
-            pin_memory=self.pin_memory,
-            num_workers=self.num_workers,
+            batch_size=self.config.batch_size,
+            pin_memory=self.config.pin_memory,
+            num_workers=self.config.num_workers,
         )
 
     def test_dataloader(self):
         return DataLoader(
             self.test_ds,
-            batch_size=self.batch_size,
-            pin_memory=self.pin_memory,
-            num_workers=self.num_workers,
+            batch_size=self.config.batch_size,
+            pin_memory=self.config.pin_memory,
+            num_workers=self.config.num_workers,
         )
 
     def predict_dataloader(self):

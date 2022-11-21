@@ -1,11 +1,12 @@
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import pytorch_lightning as pl
 import torch
 from albumentations.pytorch.transforms import ToTensorV2
 from torch.utils.data import DataLoader, Dataset, random_split
 
+from src.configs.base import ExDarkDatasetConfig  # noqa: I900
 from src.datasets.meta import AnnotatedBBoxImageInput  # noqa: I900
 from src.transforms import load_transforms  # noqa: I900
 from src.utils.image import read_image_cv2  # noqa: I900
@@ -92,16 +93,12 @@ class ExDark(Dataset):
 
 
 class ExDarkDataModule(pl.LightningDataModule):
-    def __init__(self, config: Dict):
+    def __init__(self, config: ExDarkDatasetConfig):
         super().__init__()
-        self.root = Path(config["path"])
-        self.batch_size = config["batch_size"]
-        self.val_size = config["val_size"]
+        self.root = Path(config.path)
+        self.config = config
 
-        self.pin_memory = config["pin_memory"]
-        self.num_workers = config["num_workers"]
-
-        self.train_transform, self.test_transform = load_transforms(config["transform"])
+        self.train_transform, self.test_transform = load_transforms(config.transform)
 
     def setup(self, stage: Optional[str] = None):
         n_train_images = len(
@@ -114,7 +111,7 @@ class ExDarkDataModule(pl.LightningDataModule):
             ]
         )
         train_indices, val_indices = random_split(
-            range(n_train_images), [1 - self.val_size, self.val_size]
+            range(n_train_images), [1 - self.config.val_size, self.config.val_size]
         )
 
         self.train_ds = ExDark(
@@ -140,27 +137,27 @@ class ExDarkDataModule(pl.LightningDataModule):
     def train_dataloader(self):
         return DataLoader(
             self.train_ds,
-            batch_size=self.batch_size,
-            pin_memory=self.pin_memory,
-            num_workers=self.num_workers,
+            batch_size=self.config.batch_size,
+            pin_memory=self.config.pin_memory,
+            num_workers=self.config.num_workers,
             collate_fn=ExDark.collate_fn,
         )
 
     def val_dataloader(self):
         return DataLoader(
             self.val_ds,
-            batch_size=self.batch_size,
-            pin_memory=self.pin_memory,
-            num_workers=self.num_workers,
+            batch_size=self.config.batch_size,
+            pin_memory=self.config.pin_memory,
+            num_workers=self.config.num_workers,
             collate_fn=ExDark.collate_fn,
         )
 
     def test_dataloader(self):
         return DataLoader(
             self.test_ds,
-            batch_size=self.batch_size,
-            pin_memory=self.pin_memory,
-            num_workers=self.num_workers,
+            batch_size=self.config.batch_size,
+            pin_memory=self.config.pin_memory,
+            num_workers=self.config.num_workers,
             collate_fn=ExDark.collate_fn,
         )
 
