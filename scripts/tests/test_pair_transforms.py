@@ -8,7 +8,7 @@ import torch
 from omegaconf import OmegaConf
 
 from src.configs.tests import lol_dataset_test_config as cfg  # noqa: I900
-from src.datamodules import LOLDataModule  # noqa: I900
+from src.datasets import LOLDataModule  # noqa: I900
 
 
 def plot_batch(images: torch.Tensor, targets: torch.Tensor):

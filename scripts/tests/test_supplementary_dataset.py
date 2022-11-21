@@ -7,7 +7,7 @@ from omegaconf import OmegaConf
 
 from src.configs.base import SupplementaryDataset  # noqa: I900
 from src.configs.tests import supplementary_dataset_test_config as cfg  # noqa: I900
-from src.datamodules import SupplementaryDataModule  # noqa: I900
+from src.datasets import SupplementaryDataModule  # noqa: I900
 
 if __name__ == "__main__":
     cfg = OmegaConf.structured(cfg)

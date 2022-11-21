@@ -1,14 +1,16 @@
 import random
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 
 import albumentations as A
 import numpy as np
+import pytorch_lightning as pl
 from albumentations.pytorch.transforms import ToTensorV2
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset, random_split
 
 from src.configs.base import PairSelectionMethod  # noqa: I900
 from src.datasets.meta import PairedImageInput  # noqa: I900
+from src.transforms import load_transforms  # noqa: I900
 from src.utils.image import read_image_cv2  # noqa: I900
 
 
@@ -57,6 +59,7 @@ class SICE(Dataset):
     def __init__(
         self,
         root: Path,
+        indices: Optional[list[int]] = None,
         train: bool = True,
         pair_selection_method: PairSelectionMethod = PairSelectionMethod.RANDOM_TARGET,
         max_exposure_ratio: float = 1.0,
@@ -81,6 +84,10 @@ class SICE(Dataset):
             key=lambda x: int(x.stem),
         )
 
+        if indices is not None:
+            self.images = [self.images[index] for index in indices]
+            self.targets = [self.targets[index] for index in indices]
+
     def __len__(self):
         return len(self.images)
 
@@ -100,3 +107,79 @@ class SICE(Dataset):
         image, target = transformed["image"], transformed["target"]
 
         return PairedImageInput(image=image, target=target)
+
+
+class SICEDataModule(pl.LightningDataModule):
+    def __init__(self, config: Dict):
+        super().__init__()
+        self.root = Path(config["path"])
+        self.batch_size = config["batch_size"]
+        self.val_size = config["val_size"]
+
+        self.max_exposure_ratio = config["max_exposure_ratio"]
+        self.train_pair_selection_method = config["train_pair_selection_method"]
+        self.test_pair_selection_method = config["test_pair_selection_method"]
+
+        self.pin_memory = config["pin_memory"]
+        self.num_workers = config["num_workers"]
+
+        self.train_transform, self.test_transform = load_transforms(config["transform"])
+
+    def setup(self, stage: Optional[str] = None):
+        n_train_images = len(list((self.root / "Train" / "Images").glob("*")))
+        train_indices, val_indices = random_split(
+            range(n_train_images), [1 - self.val_size, self.val_size]
+        )
+
+        self.train_ds = SICE(
+            self.root,
+            indices=train_indices,
+            train=True,
+            pair_transform=self.train_transform,
+            max_exposure_ratio=self.max_exposure_ratio,
+            pair_selection_method=self.train_pair_selection_method,
+        )
+
+        self.val_ds = SICE(
+            self.root,
+            indices=val_indices,
+            train=True,
+            pair_transform=self.test_transform,
+            max_exposure_ratio=self.max_exposure_ratio,
+            pair_selection_method=self.test_pair_selection_method,
+        )
+
+        self.test_ds = SICE(
+            self.root,
+            train=False,
+            pair_transform=self.test_transform,
+            max_exposure_ratio=self.max_exposure_ratio,
+            pair_selection_method=self.test_pair_selection_method,
+        )
+
+    def train_dataloader(self):
+        return DataLoader(
+            self.train_ds,
+            batch_size=self.batch_size,
+            pin_memory=self.pin_memory,
+            num_workers=self.num_workers,
+        )
+
+    def val_dataloader(self):
+        return DataLoader(
+            self.val_ds,
+            batch_size=self.batch_size,
+            pin_memory=self.pin_memory,
+            num_workers=self.num_workers,
+        )
+
+    def test_dataloader(self):
+        return DataLoader(
+            self.test_ds,
+            batch_size=self.batch_size,
+            pin_memory=self.pin_memory,
+            num_workers=self.num_workers,
+        )
+
+    def predict_dataloader(self):
+        return self.test_dataloader()

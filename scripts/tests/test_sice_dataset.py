@@ -6,7 +6,7 @@ from timeit import default_timer as timer
 from omegaconf import OmegaConf
 
 from src.configs.tests import sice_dataset_test_config as cfg  # noqa: I900
-from src.datamodules import SICEDataModule  # noqa: I900
+from src.datasets import SICEDataModule  # noqa: I900
 
 if __name__ == "__main__":
     cfg = OmegaConf.structured(cfg)
