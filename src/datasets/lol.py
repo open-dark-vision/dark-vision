@@ -15,6 +15,7 @@ class LOL(Dataset):
     def __init__(
         self,
         root: Path,
+        indices: Optional[list[int]] = None,
         train: bool = True,
         pair_transform: Optional[A.Compose] = None,
         preload: bool = False,
@@ -36,6 +37,10 @@ class LOL(Dataset):
         self.target_names = sorted(
             (path / "high/").glob("*.png"), key=lambda x: int(x.stem)
         )
+
+        if indices is not None:
+            self.image_names = [self.image_names[index] for index in indices]
+            self.target_names = [self.target_names[index] for index in indices]
 
         self.loaded = preload
         if self.loaded:
@@ -73,7 +78,7 @@ class LOL(Dataset):
 class LOLDataModule(pl.LightningDataModule):
     def __init__(self, config: Dict):
         super().__init__()
-        self.data_path = Path(config["path"])
+        self.root = Path(config["path"])
         self.batch_size = config["batch_size"]
         self.val_size = config["val_size"]
         self.preload_dataset = config["preload"]
@@ -84,18 +89,29 @@ class LOLDataModule(pl.LightningDataModule):
         self.train_transform, self.test_transform = load_transforms(config["transform"])
 
     def setup(self, stage: Optional[str] = None):
-        LOL_full = LOL(
-            self.data_path,
+        n_train_images = len(list((self.root / "our485/low/").glob("*.png")))
+        train_indices, val_indices = random_split(
+            range(n_train_images), [1 - self.val_size, self.val_size]
+        )
+
+        self.train_ds = LOL(
+            self.root,
+            indices=train_indices,
             train=True,
             pair_transform=self.train_transform,
             preload=self.preload_dataset,
         )
 
-        self.LOL_train, self.LOL_val = random_split(
-            LOL_full, [1 - self.val_size, self.val_size]
+        self.val_ds = LOL(
+            self.root,
+            indices=val_indices,
+            train=True,
+            pair_transform=self.test_transform,
+            preload=self.preload_dataset,
         )
-        self.LOL_test = LOL(
-            self.data_path,
+
+        self.test_ds = LOL(
+            self.root,
             train=False,
             pair_transform=self.test_transform,
             preload=self.preload_dataset,
@@ -103,7 +119,7 @@ class LOLDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(
-            self.LOL_train,
+            self.train_ds,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,
@@ -111,7 +127,7 @@ class LOLDataModule(pl.LightningDataModule):
 
     def val_dataloader(self):
         return DataLoader(
-            self.LOL_val,
+            self.val_ds,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,
@@ -119,7 +135,7 @@ class LOLDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(
-            self.LOL_test,
+            self.test_ds,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,

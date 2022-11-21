@@ -41,7 +41,7 @@ class Supplementary(Dataset):
 class SupplementaryDataModule(pl.LightningDataModule):
     def __init__(self, config: Dict):
         super().__init__()
-        self.data_path = Path(config["path"])
+        self.root = Path(config["path"])
         self.dataset_name = config["name"]
         self.batch_size = config["batch_size"]
 
@@ -51,8 +51,8 @@ class SupplementaryDataModule(pl.LightningDataModule):
         _, self.test_transform = load_transforms(config["transform"])
 
     def setup(self, stage: Optional[str] = None):
-        self.supplementary = Supplementary(
-            self.data_path,
+        self.test_ds = Supplementary(
+            self.root,
             self.dataset_name,
             transform=self.test_transform,
         )
@@ -62,7 +62,7 @@ class SupplementaryDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(
-            self.supplementary,
+            self.test_ds,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,

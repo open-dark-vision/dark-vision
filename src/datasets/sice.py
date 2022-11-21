@@ -59,6 +59,7 @@ class SICE(Dataset):
     def __init__(
         self,
         root: Path,
+        indices: Optional[list[int]] = None,
         train: bool = True,
         pair_selection_method: PairSelectionMethod = PairSelectionMethod.RANDOM_TARGET,
         max_exposure_ratio: float = 1.0,
@@ -82,6 +83,10 @@ class SICE(Dataset):
             (self.root / "Targets").glob("*.[JPG PNG]*"),
             key=lambda x: int(x.stem),
         )
+
+        if indices is not None:
+            self.images = [self.images[index] for index in indices]
+            self.targets = [self.targets[index] for index in indices]
 
     def __len__(self):
         return len(self.images)
@@ -107,7 +112,7 @@ class SICE(Dataset):
 class SICEDataModule(pl.LightningDataModule):
     def __init__(self, config: Dict):
         super().__init__()
-        self.data_path = Path(config["path"])
+        self.root = Path(config["path"])
         self.batch_size = config["batch_size"]
         self.val_size = config["val_size"]
 
@@ -121,19 +126,31 @@ class SICEDataModule(pl.LightningDataModule):
         self.train_transform, self.test_transform = load_transforms(config["transform"])
 
     def setup(self, stage: Optional[str] = None):
-        sice_full = SICE(
-            self.data_path,
+        n_train_images = len(list((self.root / "Train" / "Images").glob("*")))
+        train_indices, val_indices = random_split(
+            range(n_train_images), [1 - self.val_size, self.val_size]
+        )
+
+        self.train_ds = SICE(
+            self.root,
+            indices=train_indices,
             train=True,
             pair_transform=self.train_transform,
             max_exposure_ratio=self.max_exposure_ratio,
             pair_selection_method=self.train_pair_selection_method,
         )
 
-        self.sice_train, self.sice_val = random_split(
-            sice_full, [1 - self.val_size, self.val_size]
+        self.val_ds = SICE(
+            self.root,
+            indices=val_indices,
+            train=True,
+            pair_transform=self.test_transform,
+            max_exposure_ratio=self.max_exposure_ratio,
+            pair_selection_method=self.test_pair_selection_method,
         )
-        self.sice_test = SICE(
-            self.data_path,
+
+        self.test_ds = SICE(
+            self.root,
             train=False,
             pair_transform=self.test_transform,
             max_exposure_ratio=self.max_exposure_ratio,
@@ -142,7 +159,7 @@ class SICEDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(
-            self.sice_train,
+            self.train_ds,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,
@@ -150,7 +167,7 @@ class SICEDataModule(pl.LightningDataModule):
 
     def val_dataloader(self):
         return DataLoader(
-            self.sice_val,
+            self.val_ds,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,
@@ -158,7 +175,7 @@ class SICEDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(
-            self.sice_test,
+            self.test_ds,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,

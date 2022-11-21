@@ -27,7 +27,13 @@ EXDARK_LABEL2ID = {
 
 
 class ExDark(Dataset):
-    def __init__(self, root: Path, train: bool = True, transform=None):
+    def __init__(
+        self,
+        root: Path,
+        indices: Optional[list[int]] = None,
+        train: bool = True,
+        transform=None,
+    ):
         root = root / ("Train" if train else "Test")
         self.annotation_root = root / "Annotations"
         self.images_paths = [
@@ -35,6 +41,9 @@ class ExDark(Dataset):
             for path in root.glob("**/*.[JPG PNG jpg png JPEG jpeg]*")
             if "Annotations" not in str(path)
         ]
+
+        if indices is not None:
+            self.images_paths = [self.images_paths[index] for index in indices]
 
         self.transform = transform if transform is not None else ToTensorV2()
 
@@ -85,7 +94,7 @@ class ExDark(Dataset):
 class ExDarkDataModule(pl.LightningDataModule):
     def __init__(self, config: Dict):
         super().__init__()
-        self.data_path = Path(config["path"])
+        self.root = Path(config["path"])
         self.batch_size = config["batch_size"]
         self.val_size = config["val_size"]
 
@@ -95,24 +104,42 @@ class ExDarkDataModule(pl.LightningDataModule):
         self.train_transform, self.test_transform = load_transforms(config["transform"])
 
     def setup(self, stage: Optional[str] = None):
-        exdark_full = ExDark(
-            self.data_path,
+        n_train_images = len(
+            [
+                path
+                for path in (self.root / "Train").glob(
+                    "**/*.[JPG PNG jpg png JPEG jpeg]*"
+                )
+                if "Annotations" not in str(path)
+            ]
+        )
+        train_indices, val_indices = random_split(
+            range(n_train_images), [1 - self.val_size, self.val_size]
+        )
+
+        self.train_ds = ExDark(
+            self.root,
+            indices=train_indices,
             train=True,
             transform=self.train_transform,
         )
 
-        self.exdark_train, self.exdark_val = random_split(
-            exdark_full, [1 - self.val_size, self.val_size]
+        self.val_ds = ExDark(
+            self.root,
+            indices=val_indices,
+            train=True,
+            transform=self.test_transform,
         )
-        self.exdark_test = ExDark(
-            self.data_path,
+
+        self.test_ds = ExDark(
+            self.root,
             train=False,
             transform=self.test_transform,
         )
 
     def train_dataloader(self):
         return DataLoader(
-            self.exdark_train,
+            self.train_ds,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,
@@ -121,7 +148,7 @@ class ExDarkDataModule(pl.LightningDataModule):
 
     def val_dataloader(self):
         return DataLoader(
-            self.exdark_val,
+            self.val_ds,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,
@@ -130,7 +157,7 @@ class ExDarkDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(
-            self.exdark_test,
+            self.test_ds,
             batch_size=self.batch_size,
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,
