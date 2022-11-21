@@ -1,10 +1,13 @@
 from pathlib import Path
+from typing import Dict, Optional
 
+import pytorch_lightning as pl
 import torch
 from albumentations.pytorch.transforms import ToTensorV2
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset, random_split
 
 from src.datasets.meta import AnnotatedBBoxImageInput  # noqa: I900
+from src.transforms import load_transforms  # noqa: I900
 from src.utils.image import read_image_cv2  # noqa: I900
 
 EXDARK_LABEL2ID = {
@@ -77,3 +80,62 @@ class ExDark(Dataset):
             "labels": labels,
             "bboxes": bboxes,
         }
+
+
+class ExDarkDataModule(pl.LightningDataModule):
+    def __init__(self, config: Dict):
+        super().__init__()
+        self.data_path = Path(config["path"])
+        self.batch_size = config["batch_size"]
+        self.val_size = config["val_size"]
+
+        self.pin_memory = config["pin_memory"]
+        self.num_workers = config["num_workers"]
+
+        self.train_transform, self.test_transform = load_transforms(config["transform"])
+
+    def setup(self, stage: Optional[str] = None):
+        exdark_full = ExDark(
+            self.data_path,
+            train=True,
+            transform=self.train_transform,
+        )
+
+        self.exdark_train, self.exdark_val = random_split(
+            exdark_full, [1 - self.val_size, self.val_size]
+        )
+        self.exdark_test = ExDark(
+            self.data_path,
+            train=False,
+            transform=self.test_transform,
+        )
+
+    def train_dataloader(self):
+        return DataLoader(
+            self.exdark_train,
+            batch_size=self.batch_size,
+            pin_memory=self.pin_memory,
+            num_workers=self.num_workers,
+            collate_fn=ExDark.collate_fn,
+        )
+
+    def val_dataloader(self):
+        return DataLoader(
+            self.exdark_val,
+            batch_size=self.batch_size,
+            pin_memory=self.pin_memory,
+            num_workers=self.num_workers,
+            collate_fn=ExDark.collate_fn,
+        )
+
+    def test_dataloader(self):
+        return DataLoader(
+            self.exdark_test,
+            batch_size=self.batch_size,
+            pin_memory=self.pin_memory,
+            num_workers=self.num_workers,
+            collate_fn=ExDark.collate_fn,
+        )
+
+    def predict_dataloader(self):
+        return self.test_dataloader()
