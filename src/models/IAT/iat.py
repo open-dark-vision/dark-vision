@@ -98,6 +98,10 @@ class LitIAT(pl.LightningModule):
         self.log("val/ssim", self.val_ssim, on_step=False, on_epoch=True, prog_bar=True)
         return loss
 
+    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+        mul, add, prediction = self(batch["image"])
+        return prediction
+
     def configure_optimizers(self):
         return get_optimizers(self, self.config.optimizer)
 
