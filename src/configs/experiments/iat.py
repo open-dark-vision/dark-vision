@@ -31,7 +31,7 @@ iat_config = ExperimentConfig(
     ),
     loss=LossConfig(name=Loss.L1, reduction="mean"),
     device="cuda",
-    epochs=200,
+    epochs=400,
 )
 
 

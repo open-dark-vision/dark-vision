@@ -13,16 +13,9 @@ from src.configs.experiments import iat_finetune_config as cfg  # noqa: I900
 from src.datasets import LOLDataModule  # noqa: I900
 from src.models import LitIAT  # noqa: I900
 
-run_path = Path("reproducibility/31xwp61i/checkpoints/iat-lol-000-loss-0.2427.ckpt")
+run_path = Path("reproducibility/18n26pf7/checkpoints/last.ckpt")
 
 cfg = OmegaConf.structured(cfg)
-
-cfg.device = "cpu"
-cfg.dataset.num_workers = 0
-cfg.dataset.pin_memory = False
-cfg.dataset.batch_size = 1
-cfg.epochs = 1
-
 lol_dm = LOLDataModule(config=cfg.dataset)
 
 model = LitIAT.load_from_checkpoint(run_path, config=cfg)
@@ -35,6 +28,7 @@ callbacks = [
         save_last=True,
         auto_insert_metric_name=False,
         filename=cfg.name + "-{epoch:03d}-loss-{val/loss:.4f}",
+        save_weights_only=True,
     ),
     LearningRateMonitor(logging_interval="step"),
 ]

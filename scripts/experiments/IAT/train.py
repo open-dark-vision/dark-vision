@@ -24,6 +24,7 @@ callbacks = [
         save_last=True,
         auto_insert_metric_name=False,
         filename=cfg.name + "-{epoch:03d}-loss-{val/loss:.4f}",
+        save_weights_only=True,
     ),
     LearningRateMonitor(logging_interval="step"),
 ]
