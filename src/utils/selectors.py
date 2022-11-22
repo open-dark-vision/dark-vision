@@ -51,7 +51,6 @@ def get_optimizers(model: pl.LightningModule, config: OptimizerConfig):
         raise NotImplementedError(
             f"Scheduler {config.scheduler.name} is not implemented."
         )
-    print(scheduler, "HEREHRE")
     return {
         "optimizer": optimizer,
         "lr_scheduler": {

@@ -1,0 +1,50 @@
+from pathlib import Path
+
+import pytorch_lightning as pl
+from omegaconf import OmegaConf
+from pytorch_lightning.callbacks import (
+    LearningRateMonitor,
+    ModelCheckpoint,
+    RichProgressBar,
+)
+from pytorch_lightning.loggers import WandbLogger
+
+from src.configs.experiments import iat_finetune_config as cfg  # noqa: I900
+from src.datasets import LOLDataModule  # noqa: I900
+from src.models import LitIAT  # noqa: I900
+
+run_path = Path("reproducibility/31xwp61i/checkpoints/iat-lol-000-loss-0.2427.ckpt")
+
+cfg = OmegaConf.structured(cfg)
+
+cfg.device = "cpu"
+cfg.dataset.num_workers = 0
+cfg.dataset.pin_memory = False
+cfg.dataset.batch_size = 1
+cfg.epochs = 1
+
+lol_dm = LOLDataModule(config=cfg.dataset)
+
+model = LitIAT.load_from_checkpoint(run_path, config=cfg)
+callbacks = [
+    RichProgressBar(),
+    ModelCheckpoint(
+        monitor="val/loss",
+        mode="min",
+        save_top_k=2,
+        save_last=True,
+        auto_insert_metric_name=False,
+        filename=cfg.name + "-{epoch:03d}-loss-{val/loss:.4f}",
+    ),
+    LearningRateMonitor(logging_interval="step"),
+]
+logger = WandbLogger(entity="dark-vision", project="reproducibility", name=cfg.name)
+
+trainer = pl.Trainer(
+    accelerator=cfg.device,
+    devices=1,
+    callbacks=callbacks,
+    logger=logger,
+    max_epochs=cfg.epochs,
+)
+trainer.fit(model, lol_dm)

@@ -1,1 +1,1 @@
-from .iat import iat_config  # noqa: F401
+from .iat import iat_config, iat_finetune_config  # noqa: F401

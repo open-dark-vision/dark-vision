@@ -9,6 +9,7 @@ class Transform(str, Enum):
     DEVELOPMENT = "development"
     FLIP = "flip"
     LLFLOW = "LLFlow"
+    FLIP_NO_RESIZE = "flip_no_resize"
 
 
 class Optimizer(str, Enum):
