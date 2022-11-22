@@ -10,8 +10,8 @@ def load_transforms(transform_config: TransformConfig):
             image_size=transform_config.image_size,
             pair_transform=transform_config.pair_transform,
         )
-    elif transform_config.name == Transform.IAT:
-        transforms = iat_transform(
+    elif transform_config.name == Transform.FLIP:
+        transforms = flip_transform(
             image_size=transform_config.image_size,
             pair_transform=transform_config.pair_transform,
         )
@@ -34,7 +34,7 @@ def development_transform(image_size: int, pair_transform: bool = False):
     return transform, transform
 
 
-def iat_transform(image_size: int = 256, pair_transform: bool = True):
+def flip_transform(image_size: int = 256, pair_transform: bool = True):
     train_transform = A.Compose(
         [
             A.RandomCrop(image_size, image_size, always_apply=True),

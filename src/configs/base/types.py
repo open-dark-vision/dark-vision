@@ -7,7 +7,7 @@ class Loss(str, Enum):
 
 class Transform(str, Enum):
     DEVELOPMENT = "development"
-    IAT = "iat"
+    FLIP = "flip"
 
 
 class Optimizer(str, Enum):

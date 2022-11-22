@@ -18,7 +18,7 @@ iat_config = ExperimentConfig(
         num_workers=12,
         pin_memory=True,
         transform=TransformConfig(
-            name=Transform.IAT, image_size=256, pair_transform=True
+            name=Transform.FLIP, image_size=256, pair_transform=True
         ),
         batch_size=8,
     ),
