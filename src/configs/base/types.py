@@ -3,6 +3,7 @@ from enum import Enum
 
 class Loss(str, Enum):
     L1 = "l1"
+    SCI = "sci"
 
 
 class Transform(str, Enum):

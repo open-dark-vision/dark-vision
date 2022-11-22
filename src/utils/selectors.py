@@ -9,6 +9,7 @@ from src.configs.base import (  # noqa: I900
     OptimizerConfig,
     Scheduler,
 )
+from src.losses import SCILoss  # noqa: I900
 
 
 def get_optimizers(model: pl.LightningModule, config: OptimizerConfig):
@@ -57,13 +58,14 @@ def get_optimizers(model: pl.LightningModule, config: OptimizerConfig):
             "scheduler": scheduler,
             "interval": "step",
             "frequency": config.scheduler.frequency,
-            "name": "LR Scheduler",
         },
     }
 
 
-def get_loss(config: LossConfig):
+def get_loss(config: LossConfig, **kwargs):
     if config.name == Loss.L1:
         return nn.L1Loss(reduction=config.reduction)
+    elif config.name == Loss.SCI:
+        return SCILoss(finetune=kwargs["finetune"])
     else:
         raise NotImplementedError(f"Loss {config.name} is not implemented.")

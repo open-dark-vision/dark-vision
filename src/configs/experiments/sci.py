@@ -1,6 +1,5 @@
 from src.configs.base import (  # noqa: I900
     ExperimentConfig,
-    IATModelConfig,
     LOLDatasetConfig,
     Loss,
     LossConfig,
@@ -8,12 +7,14 @@ from src.configs.base import (  # noqa: I900
     OptimizerConfig,
     Scheduler,
     SchedulerConfig,
+    SCIModelConfig,
     Transform,
     TransformConfig,
 )
 
-iat_config = ExperimentConfig(
-    name="iat-lol-patches",
+sci_config = ExperimentConfig(
+    name="sci-lol",
+    finetune=False,
     dataset=LOLDatasetConfig(
         num_workers=12,
         pin_memory=True,
@@ -22,35 +23,43 @@ iat_config = ExperimentConfig(
         ),
         batch_size=8,
     ),
-    model=IATModelConfig(),
+    model=SCIModelConfig(
+        supervised_metrics=True,
+    ),
     optimizer=OptimizerConfig(
         name=Optimizer.ADAMW,
-        lr=2e-4,
-        weight_decay=4e-4,
-        scheduler=SchedulerConfig(name=Scheduler.COSINE, frequency=1),
+        lr=3e-4,
+        weight_decay=1e-2,
+        scheduler=SchedulerConfig(name=Scheduler.CONSTANT, frequency=1),
     ),
-    loss=LossConfig(name=Loss.L1, reduction="mean"),
+    loss=LossConfig(
+        name=Loss.SCI,
+    ),
     device="cuda",
-    epochs=200,
+    epochs=30,
 )
 
-
-iat_finetune_config = ExperimentConfig(
-    name="iat-lol-finetune",
+sci_finetune_config = ExperimentConfig(
+    name="sci-lol-finetune",
+    finetune=True,
     dataset=LOLDatasetConfig(
         num_workers=12,
         pin_memory=True,
         transform=TransformConfig(name=Transform.FLIP_NO_RESIZE, pair_transform=True),
         batch_size=8,
     ),
-    model=IATModelConfig(),
+    model=SCIModelConfig(
+        supervised_metrics=True,
+    ),
     optimizer=OptimizerConfig(
         name=Optimizer.ADAMW,
-        lr=2e-4,
-        weight_decay=4e-4,
-        scheduler=SchedulerConfig(name=Scheduler.COSINE, frequency=1),
+        lr=5e-4,
+        weight_decay=1e-2,
+        scheduler=SchedulerConfig(name=Scheduler.CONSTANT, frequency=1),
     ),
-    loss=LossConfig(name=Loss.L1, reduction="mean"),
+    loss=LossConfig(
+        name=Loss.SCI,
+    ),
     device="cuda",
-    epochs=100,
+    epochs=30,
 )
