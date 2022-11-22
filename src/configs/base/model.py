@@ -30,3 +30,10 @@ class LLFlowEncoderConfig(ModelConfig):
 class LLFlowModelConfig(ModelConfig):
     name: str = "LLFlow"
     encoder: ModelConfig = LLFlowEncoderConfig
+
+
+@dataclass
+class SCIModelConfig(ModelConfig):
+    name: str = "SCI"
+    stage: int = 3
+    supervised_metrics: bool = False

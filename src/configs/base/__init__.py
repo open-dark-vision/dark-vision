@@ -11,6 +11,7 @@ from .model import (  # noqa: F401
     LLFlowEncoderConfig,
     LLFlowModelConfig,
     ModelConfig,
+    SCIModelConfig,
 )
 from .training import LossConfig, OptimizerConfig, SchedulerConfig  # noqa: F401
 from .types import (  # noqa: F401

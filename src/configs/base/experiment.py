@@ -16,6 +16,7 @@ class ExperimentConfig:
     optimizer: OptimizerConfig = MISSING
     loss: LossConfig = MISSING
 
+    finetune: bool = False  # use when you want to have 2 stages of training
     seed: int = 42
     epochs: int = 10
     device: str = "cuda"
