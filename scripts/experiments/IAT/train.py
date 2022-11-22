@@ -7,7 +7,7 @@ from pytorch_lightning.callbacks import (
 )
 from pytorch_lightning.loggers import WandbLogger
 
-from src.configs.experiments import iat_config as cfg # noqa: I900
+from src.configs.experiments import iat_config as cfg  # noqa: I900
 from src.datasets import LOLDataModule  # noqa: I900
 from src.models import LitIAT  # noqa: I900
 
