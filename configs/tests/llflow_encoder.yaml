@@ -1,0 +1,16 @@
+dataset:
+  path: "data/LOL"
+  batch_size: 4
+  val_size: 0.05
+  preload: False
+  pin_memory: False
+  num_workers: 0
+  augmentation: 'LLFlow_pipeline'
+
+model:
+  encoder:
+    channels_in: 12
+    channels_middle: 64
+    channels_out: 3
+    rrdb_number: 12
+    rrdb_channels: 32

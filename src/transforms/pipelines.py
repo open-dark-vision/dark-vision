@@ -2,6 +2,7 @@ import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
 from src.configs.base import Transform, TransformConfig  # noqa: I900
+from src.transforms.custom_transforms import LLFlowTransform  # noqa: I900
 
 
 def load_transforms(transform_config: TransformConfig):
@@ -56,3 +57,7 @@ def flip_transform(image_size: int = 256, pair_transform: bool = True):
     )
 
     return train_transform, test_transform
+
+
+def LLFlow_transform():
+    return LLFlowTransform(train=True), LLFlowTransform(train=False)

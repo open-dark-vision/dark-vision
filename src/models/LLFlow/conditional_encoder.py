@@ -51,8 +51,6 @@ class ConditionalEncoder(torch.nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
-        x = image_preprocessing(x)
-
         feature_maps_1 = self.first_submodule(x)
 
         block_indexes = [0, 2, 4, 6]
