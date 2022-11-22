@@ -1,1 +1,1 @@
-from .conditional_encoder import ConditionalEncoder
+from .conditional_encoder import ConditionalEncoder  # noqa: F401

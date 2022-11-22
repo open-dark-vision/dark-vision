@@ -1,7 +1,4 @@
-from typing import Tuple
-
 import torch
-import torchvision
 
 
 class Interpolate(torch.nn.Module):

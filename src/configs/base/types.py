@@ -8,6 +8,7 @@ class Loss(str, Enum):
 class Transform(str, Enum):
     DEVELOPMENT = "development"
     FLIP = "flip"
+    LLFLOW = "LLFlow"
 
 
 class Optimizer(str, Enum):

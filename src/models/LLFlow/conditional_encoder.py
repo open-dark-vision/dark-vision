@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 import torch
 
@@ -15,6 +15,7 @@ class ConditionalEncoder(torch.nn.Module):
         rrdb_number: int = 24,
         rrdb_channels: int = 32,
         kernel: Tuple[int, int] = (3, 3),
+        **kwargs: Any,
     ):
         super(ConditionalEncoder, self).__init__()
 

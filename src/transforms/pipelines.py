@@ -16,6 +16,11 @@ def load_transforms(transform_config: TransformConfig):
             image_size=transform_config.image_size,
             pair_transform=transform_config.pair_transform,
         )
+    elif transform_config.name == Transform.LLFLOW:
+        transforms = (
+            LLFlowTransform(train=True, crop_size=transform_config.image_size),
+            LLFlowTransform(train=False, crop_size=transform_config.image_size),
+        )
     else:
         raise ValueError(f"Transform {transform_config.name} not found.")
 
@@ -57,7 +62,3 @@ def flip_transform(image_size: int = 256, pair_transform: bool = True):
     )
 
     return train_transform, test_transform
-
-
-def LLFlow_transform():
-    return LLFlowTransform(train=True), LLFlowTransform(train=False)
