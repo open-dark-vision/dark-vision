@@ -13,7 +13,12 @@ from .model import (  # noqa: F401
     ModelConfig,
     SCIModelConfig,
 )
-from .training import LossConfig, OptimizerConfig, SchedulerConfig  # noqa: F401
+from .training import (  # noqa: F401
+    LLFlowLossConfig,
+    LossConfig,
+    OptimizerConfig,
+    SchedulerConfig,
+)
 from .types import (  # noqa: F401
     Loss,
     Optimizer,

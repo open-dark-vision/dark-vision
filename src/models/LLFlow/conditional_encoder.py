@@ -52,30 +52,21 @@ class ConditionalEncoder(torch.nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
-        feature_maps_1 = self.first_submodule(x)
+        feats_pre_rrdb = self.first_submodule(x)
 
-        block_indexes = [0, 2, 4, 6]
-        block_results = {}
+        feats_post_rrdb = self.RRDB_submodule(feats_pre_rrdb)
 
-        current_feature_map = feature_maps_1
-        for index, m in enumerate(self.RRDB_submodule.children()):
-            current_feature_map = m(current_feature_map)
-            if index in block_indexes:
-                block_results[f"feature_maps_{2 + index//2}"] = current_feature_map
+        feature_maps_1 = feats_pre_rrdb + self.trunk_conv(feats_post_rrdb)
 
-        feature_maps_6 = feature_maps_1 + self.trunk_conv(current_feature_map)
+        feature_maps_2 = self.first_downsampling(feature_maps_1)
 
-        feature_maps_7 = self.first_downsampling(feature_maps_6)
+        feature_maps_3 = self.second_downsampling(feature_maps_2)
 
-        feature_maps_8 = self.second_downsampling(feature_maps_7)
-
-        color_map = self.fine_tune_color_map(feature_maps_6)
+        color_map = self.fine_tune_color_map(feature_maps_1)
 
         return {
             "feature_maps_1": feature_maps_1,
-            **block_results,
-            "feature_maps_6": feature_maps_6,
-            "feature_maps_7": feature_maps_7,
-            "feature_maps_8": feature_maps_8,
+            "feature_maps_2": feature_maps_2,
+            "feature_maps_3": feature_maps_3,
             "color_map": color_map,
         }

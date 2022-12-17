@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Tuple
 
 from omegaconf import MISSING
 
@@ -18,9 +18,16 @@ class OptimizerConfig:
     lr: float = 1e-3
     weight_decay: float = 1e-2
     scheduler: Optional[SchedulerConfig] = None
+    betas: Optional[Tuple] = None
 
 
 @dataclass
 class LossConfig:
     name: Loss = MISSING
     reduction: str = "mean"
+
+
+@dataclass
+class LLFlowLossConfig(LossConfig):
+    name: Loss = Loss.NLL
+    p: float = 0.2

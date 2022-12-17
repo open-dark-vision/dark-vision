@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import albumentations as A
 import pytorch_lightning as pl
@@ -16,7 +16,7 @@ class LOL(Dataset):
     def __init__(
         self,
         root: Path,
-        indices: Optional[list[int]] = None,
+        indices: Optional[List[int]] = None,
         train: bool = True,
         pair_transform: Optional[A.Compose] = None,
         preload: bool = False,
