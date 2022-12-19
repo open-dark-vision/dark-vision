@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import pytorch_lightning as pl
 import torch
@@ -31,7 +31,7 @@ class ExDark(Dataset):
     def __init__(
         self,
         root: Path,
-        indices: Optional[list[int]] = None,
+        indices: Optional[List[int]] = None,
         train: bool = True,
         transform=None,
     ):
@@ -48,7 +48,7 @@ class ExDark(Dataset):
 
         self.transform = transform if transform is not None else ToTensorV2()
 
-    def read_annotation(self, img_path) -> tuple[torch.Tensor, torch.Tensor]:
+    def read_annotation(self, img_path) -> Tuple[torch.Tensor, torch.Tensor]:
         annotation_path = (
             self.annotation_root / img_path.parent.name / (img_path.name + ".txt")
         )

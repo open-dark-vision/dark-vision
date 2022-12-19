@@ -24,6 +24,7 @@ def get_optimizers(model: pl.LightningModule, config: OptimizerConfig):
             params=model.parameters(),
             lr=config.lr,
             weight_decay=config.weight_decay,
+            betas=config.betas,
         )
     elif config.name == Optimizer.SGD:
         optimizer = torch.optim.SGD(
