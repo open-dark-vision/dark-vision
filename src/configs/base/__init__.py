@@ -12,6 +12,7 @@ from .model import (  # noqa: F401
     LLFlowModelConfig,
     ModelConfig,
     SCIModelConfig,
+    SNRTModelConfig,
 )
 from .training import (  # noqa: F401
     LLFlowLossConfig,

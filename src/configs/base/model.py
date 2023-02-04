@@ -47,3 +47,7 @@ class SCIModelConfig(ModelConfig):
     name: str = "SCI"
     stage: int = 3
     supervised_metrics: bool = False
+
+
+class SNRTModelConfig(ModelConfig):
+    name: str = "SNRT"
