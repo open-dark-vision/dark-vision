@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from omegaconf import MISSING
 
@@ -49,5 +50,16 @@ class SCIModelConfig(ModelConfig):
     supervised_metrics: bool = False
 
 
+@dataclass
 class SNRTModelConfig(ModelConfig):
     name: str = "SNRT"
+    nf: int = 64
+    nframes: int = 5
+    front_RBs: int = 5
+    back_RBs: int = 10
+    center: Optional[int] = None
+    predeblur: bool = False
+    w_TSA: bool = True
+    lambd: float = 0.1
+    l_pix_w: int = 1
+    blur_kernel: int = 3

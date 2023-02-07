@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchmetrics
-import torchvision
+from einops import rearrange, reduce, repeat
 from omegaconf import OmegaConf  # noqa: F401
 
 from src.models.SNRT import arch_util  # noqa: I900
@@ -24,29 +24,24 @@ class SNRT(nn.Module):
         self,
         nf=64,
         nframes=5,
-        groups=8,
         front_RBs=5,
         back_RBs=10,
         center=None,
         predeblur=False,
-        HR_in=True,
         w_TSA=True,
     ):
         super().__init__()
         self.nf = nf
         self.center = nframes // 2 if center is None else center
         self.is_predeblur = True if predeblur else False
-        self.HR_in = True if HR_in else False
         self.w_TSA = w_TSA
         ResidualBlock_noBN_f = functools.partial(arch_util.ResidualBlock_noBN, nf=nf)
 
-        if self.HR_in:
-            self.conv_first_1 = nn.Conv2d(3, nf, 3, 1, 1, bias=True)
-            self.conv_first_2 = nn.Conv2d(nf, nf, 3, 2, 1, bias=True)
-            self.conv_first_3 = nn.Conv2d(nf, nf, 3, 2, 1, bias=True)
+        self.lrelu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
 
-        else:
-            self.conv_first = nn.Conv2d(3, nf, 3, 1, 1, bias=True)
+        self.conv_first_1 = nn.Conv2d(3, nf, 3, 1, 1, bias=True)
+        self.conv_first_2 = nn.Conv2d(nf, nf, 3, 2, 1, bias=True)
+        self.conv_first_3 = nn.Conv2d(nf, nf, 3, 2, 1, bias=True)
 
         self.feature_extraction = arch_util.make_layer(ResidualBlock_noBN_f, front_RBs)
         self.recon_trunk = arch_util.make_layer(ResidualBlock_noBN_f, back_RBs)
@@ -57,7 +52,6 @@ class SNRT(nn.Module):
         self.HRconv = nn.Conv2d(64 * 2, 64, 3, 1, 1, bias=True)
         self.conv_last = nn.Conv2d(64, 3, 3, 1, 1, bias=True)
 
-        self.lrelu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
         self.transformer = Encoder_patch66(d_model=1024, d_inner=2048, n_layers=6)
         self.recon_trunk_light = arch_util.make_layer(ResidualBlock_noBN_f, 6)
 
@@ -79,21 +73,21 @@ class SNRT(nn.Module):
         ys = np.linspace(-1, 1, fea.size(2) // 4)
         xs = np.meshgrid(xs, ys)
         xs = np.stack(xs, 2)
-        xs = torch.Tensor(xs).unsqueeze(0).repeat(fea.size(0), 1, 1, 1)
-        xs = xs.view(fea.size(0), -1, 2)
+        xs = repeat(torch.Tensor(xs), "h w c -> b h w c", b=fea.size(0))
+        xs = rearrange(xs, "b h w c -> b (h w) c")
 
         height = fea.shape[2]
         width = fea.shape[3]
         fea_unfold = F.unfold(fea, kernel_size=4, dilation=1, stride=4, padding=0)
-        fea_unfold = fea_unfold.permute(0, 2, 1)
+        fea_unfold = rearrange(fea_unfold, "b h w -> b w h")
 
         mask_unfold = F.unfold(mask, kernel_size=4, dilation=1, stride=4, padding=0)
-        mask_unfold = mask_unfold.permute(0, 2, 1)
-        mask_unfold = torch.mean(mask_unfold, dim=2).unsqueeze(dim=-2)
+        mask_unfold = rearrange(mask_unfold, "b h w -> b w h")
+        mask_unfold = reduce(mask_unfold, "b w h -> b 1 w", "mean")
         mask_unfold[mask_unfold <= 0.5] = 0.0
 
         fea_unfold = self.transformer(fea_unfold, xs, src_mask=mask_unfold)
-        fea_unfold = fea_unfold.permute(0, 2, 1)
+        fea_unfold = rearrange(fea_unfold, "b w h -> b h w")
         fea_unfold = nn.Fold(
             output_size=(height, width),
             kernel_size=(4, 4),
@@ -103,7 +97,7 @@ class SNRT(nn.Module):
         )(fea_unfold)
 
         channel = fea.shape[1]
-        mask = mask.repeat(1, channel, 1, 1)
+        mask = repeat(mask, "b 1 h w -> b c h w", c=channel)
         fea = fea_unfold * (1 - mask) + fea_light * mask
 
         out_noise = self.recon_trunk(fea)
@@ -124,15 +118,24 @@ class LitSNRT(pl.LightningModule):
         super().__init__()
         self.config = config
 
-        self.model = SNRT()
+        self.model = SNRT(
+            nf=config.model.nf,
+            nframes=config.model.nframes,
+            front_RBs=config.model.front_RBs,
+            back_RBs=config.model.back_RBs,
+            center=config.model.center,
+            predeblur=config.model.predeblur,
+            w_TSA=config.model.w_TSA,
+        )
+
         self.loss_ch = CharbonnierLoss()
-        self.lambd = 0.1
+        self.lambd = config.model.lambd
         self.loss_vgg = VGGLoss()
 
-        self.l_pix_w = 1
+        self.l_pix_w = config.model.l_pix_w
 
-        self.grayscale = torchvision.transforms.Grayscale(num_output_channels=1)
-        self.blur = kornia.filters.MedianBlur((3, 3))
+        blur_kernel = config.model.blur_kernel
+        self.blur = kornia.filters.MedianBlur((blur_kernel, blur_kernel))
 
         self.train_psnr = torchmetrics.PeakSignalNoiseRatio()
         self.train_ssim = torchmetrics.StructuralSimilarityIndexMeasure()
@@ -143,23 +146,23 @@ class LitSNRT(pl.LightningModule):
     def forward(self, x, mask):
         return self.model(x, mask)
 
+    @staticmethod
+    def weight_image(image):
+        weights = [0.299, 0.587, 0.114]
+        image = (
+            image[:, 0:1, :, :] * weights[0]
+            + image[:, 1:2, :, :] * weights[1]
+            + image[:, 2:3, :, :] * weights[2]
+        )
+        return image
+
     def shared_step(self, image, target):
-        # dark = self.grayscale(image)
         dark = image.clone()
         light = self.blur(dark)
 
-        # dark = self.var_L
-        dark = (
-            dark[:, 0:1, :, :] * 0.299
-            + dark[:, 1:2, :, :] * 0.587
-            + dark[:, 2:3, :, :] * 0.114
-        )
-        # light = self.nf
-        light = (
-            light[:, 0:1, :, :] * 0.299
-            + light[:, 1:2, :, :] * 0.587
-            + light[:, 2:3, :, :] * 0.114
-        )
+        dark = self.weight_image(dark)
+        light = self.weight_image(light)
+
         noise = torch.abs(dark - light)
         mask = torch.div(light, noise + 0.0001)
 
@@ -167,8 +170,8 @@ class LitSNRT(pl.LightningModule):
         height = mask.shape[2]
         width = mask.shape[3]
         mask_max = torch.max(mask.view(batch_size, -1), dim=1)[0]
-        mask_max = mask_max.view(batch_size, 1, 1, 1)
-        mask_max = mask_max.repeat(1, 1, height, width)
+        mask_max = rearrange(mask_max, "b -> b 1 1 1")
+        mask_max = repeat(mask_max, "b 1 1 1 -> b 1 h w", h=height, w=width)
         mask = mask * 1.0 / (mask_max + 0.0001)
 
         mask = torch.clamp(mask, min=0, max=1.0)
