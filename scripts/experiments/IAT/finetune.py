@@ -13,7 +13,9 @@ from src.configs.experiments import iat_finetune_config as cfg  # noqa: I900
 from src.datasets import LOLDataModule  # noqa: I900
 from src.models import LitIAT  # noqa: I900
 
-run_path = Path("reproducibility/18n26pf7/checkpoints/last.ckpt")
+run_path = Path(
+    "reproducibility/1degqnca/checkpoints/iat-lol-patches-330-loss-0.0754.ckpt"
+)
 
 cfg = OmegaConf.structured(cfg)
 lol_dm = LOLDataModule(config=cfg.dataset)

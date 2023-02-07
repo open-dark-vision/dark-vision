@@ -405,11 +405,11 @@ class SCILoss(nn.Module):
         return 1.5 * fidelity + smoothness
 
     def _forward_calibrate(
-        self, images: torch.Tensor, illumination: list[torch.Tensor]
+        self, inputs: list[torch.Tensor], illumination: list[torch.Tensor]
     ):
         loss = 0
-        for stage_illumination in illumination:
-            loss += self._compute_loss(images, stage_illumination)
+        for stage_input, stage_illumination in zip(inputs, illumination):
+            loss += self._compute_loss(stage_input, stage_illumination)
 
         return loss
 
@@ -417,8 +417,8 @@ class SCILoss(nn.Module):
         loss = self._compute_loss(images, illumination)
         return loss
 
-    def forward(self, images, illumination):
+    def forward(self, inputs, illumination):
         if self.finetune:
-            return self._forward_finetune(images, illumination)
+            return self._forward_finetune(inputs, illumination)
         else:
-            return self._forward_calibrate(images, illumination)
+            return self._forward_calibrate(inputs, illumination)

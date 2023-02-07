@@ -8,11 +8,11 @@ from pytorch_lightning.callbacks import (
 from pytorch_lightning.loggers import WandbLogger
 
 from src.configs.experiments import sci_config as cfg  # noqa: I900
-from src.datasets import LOLDataModule  # noqa: I900
+from src.datasets import SICEDataModule  # noqa: I900
 from src.models import LitSCI  # noqa: I900
 
 cfg = OmegaConf.structured(cfg)
-lol_dm = LOLDataModule(config=cfg.dataset)
+sice_dm = SICEDataModule(config=cfg.dataset)
 
 model = LitSCI(config=cfg)
 callbacks = [
@@ -38,4 +38,4 @@ trainer = pl.Trainer(
     max_epochs=cfg.epochs,
     gradient_clip_val=5.0,
 )
-trainer.fit(model, lol_dm)
+trainer.fit(model, sice_dm)
