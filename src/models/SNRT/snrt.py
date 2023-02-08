@@ -135,7 +135,7 @@ class LitSNRT(pl.LightningModule):
         self.l_pix_w = config.model.l_pix_w
 
         blur_kernel = config.model.blur_kernel
-        self.blur = kornia.filters.MedianBlur((blur_kernel, blur_kernel))
+        self.blur = kornia.filters.BoxBlur((blur_kernel, blur_kernel))
 
         self.train_psnr = torchmetrics.PeakSignalNoiseRatio()
         self.train_ssim = torchmetrics.StructuralSimilarityIndexMeasure()
@@ -143,22 +143,9 @@ class LitSNRT(pl.LightningModule):
         self.val_psnr = torchmetrics.PeakSignalNoiseRatio()
         self.val_ssim = torchmetrics.StructuralSimilarityIndexMeasure()
 
-    def forward(self, x, mask):
-        return self.model(x, mask)
-
-    @staticmethod
-    def weight_image(image):
-        weights = [0.299, 0.587, 0.114]
-        image = (
-            image[:, 0:1, :, :] * weights[0]
-            + image[:, 1:2, :, :] * weights[1]
-            + image[:, 2:3, :, :] * weights[2]
-        )
-        return image
-
-    def shared_step(self, image, target):
+    def make_mask(self, image):
         dark = image.clone()
-        light = self.blur(dark)
+        light = self.blur(image)
 
         dark = self.weight_image(dark)
         light = self.weight_image(light)
@@ -175,9 +162,24 @@ class LitSNRT(pl.LightningModule):
         mask = mask * 1.0 / (mask_max + 0.0001)
 
         mask = torch.clamp(mask, min=0, max=1.0)
-        mask = mask.float()
+        return mask.float()
 
-        prediction = self(image, mask)
+    def forward(self, x):
+        mask = self.make_mask(x)
+        return self.model(x, mask)
+
+    @staticmethod
+    def weight_image(image):
+        weights = [0.299, 0.587, 0.114]
+        image = (
+            image[:, 0:1, :, :] * weights[0]
+            + image[:, 1:2, :, :] * weights[1]
+            + image[:, 2:3, :, :] * weights[2]
+        )
+        return image
+
+    def shared_step(self, image, target):
+        prediction = self(image)
 
         l_pix = self.l_pix_w * self.loss_ch(prediction, target)
         l_vgg = self.l_pix_w * self.loss_vgg(prediction, target) * self.lambd
@@ -204,11 +206,11 @@ class LitSNRT(pl.LightningModule):
         image, target = batch["image"], batch["target"]
         loss, prediction = self.shared_step(image, target)
 
-        self.log("val/loss", loss, on_step=True, on_epoch=False, prog_bar=False)
+        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True)
         self.val_psnr(prediction, target)
-        self.log("val/psnr", self.val_psnr, on_step=True, on_epoch=False, prog_bar=True)
+        self.log("val/psnr", self.val_psnr, on_step=False, on_epoch=True, prog_bar=True)
         self.val_ssim(prediction, target)
-        self.log("val/ssim", self.val_ssim, on_step=True, on_epoch=False, prog_bar=True)
+        self.log("val/ssim", self.val_ssim, on_step=False, on_epoch=True, prog_bar=True)
         return loss
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
@@ -218,13 +220,13 @@ class LitSNRT(pl.LightningModule):
     def configure_optimizers(self):
         return get_optimizers(self, self.config.optimizer)
 
-    # def on_train_start(self):
-    #     self.logger.log_hyperparams(self.config)
+    def on_train_start(self):
+        self.logger.log_hyperparams(self.config)
 
-    #     config_path = (
-    #         Path(self.logger.experiment.project)
-    #         / self.logger.experiment.id
-    #         / "config.yaml"
-    #     )
-    #     config_path.parent.mkdir(parents=True, exist_ok=True)
-    #     OmegaConf.save(self.config, config_path)
+        config_path = (
+            Path(self.logger.experiment.project)
+            / self.logger.experiment.id
+            / "config.yaml"
+        )
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        OmegaConf.save(self.config, config_path)

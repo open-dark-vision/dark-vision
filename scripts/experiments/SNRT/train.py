@@ -5,13 +5,11 @@ from pytorch_lightning.callbacks import (
     ModelCheckpoint,
     RichProgressBar,
 )
+from pytorch_lightning.loggers import WandbLogger
 
 from src.configs.experiments import snrt_config as cfg  # noqa: I900
 from src.datasets import LOLDataModule  # noqa: I900
 from src.models import LitSNRT  # noqa: I900
-
-# from pytorch_lightning.loggers import WandbLogger
-
 
 if __name__ == "__main__":
 
@@ -32,14 +30,13 @@ if __name__ == "__main__":
         ),
         LearningRateMonitor(logging_interval="step"),
     ]
-    # logger = WandbLogger(entity="dark-vision",
-    #  project="reproducibility", name=cfg.name)
+    logger = WandbLogger(entity="dark-vision", project="reproducibility", name=cfg.name)
 
     trainer = pl.Trainer(
         accelerator=cfg.device,
         devices=1,
         callbacks=callbacks,
-        # logger=logger,
+        logger=logger,
         max_epochs=cfg.epochs,
     )
     trainer.fit(model, lol_dm)
