@@ -2,7 +2,7 @@ import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
 from src.configs.base import Transform, TransformConfig  # noqa: I900
-from src.transforms.custom_transforms import LLFlowTransform  # noqa: I900
+from src.transforms.llflow_transform import LLFlowTransform  # noqa: I900
 
 
 def load_transforms(transform_config: TransformConfig):

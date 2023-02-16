@@ -32,7 +32,7 @@ class LLFlowTransform:
 
     @staticmethod
     def color_map(image: np.array) -> np.array:
-        return image / (image.sum(axis=1, keepdims=True) + 1e-4)
+        return image / (image.sum(axis=2, keepdims=True) + 1e-4)
 
     @staticmethod
     def noise_map(c_map: np.array) -> np.array:
