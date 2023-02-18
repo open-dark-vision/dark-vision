@@ -10,6 +10,13 @@ class PairedImageInput(TypedDict):
     target: Image
 
 
+class PairedImageWithLightnessInput(TypedDict):
+    image: Image
+    target: Image
+    source_lightness: torch.Tensor
+    target_lightness: torch.Tensor
+
+
 class AnnotatedBBoxImageInput(TypedDict):
     """Annotated Bounding Box Image Input.
 

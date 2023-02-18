@@ -37,6 +37,12 @@ class LOLDatasetConfig(DatasetConfig):
 
 
 @dataclass
+class COCODatasetConfig(DatasetConfig):
+    name: str = "COCO-2017-unlabeled"
+    path: str = "data/unlabeled2017"
+
+
+@dataclass
 class SICEDatasetConfig(DatasetConfig):
     name: str = "SICE"
     path: str = "data/SICE"

@@ -97,10 +97,10 @@ class MCBFSTransform:
         : return: simulated bayer filter result (deformed image)
         """
         # decompose to retinex and luminance
-        R, L = self.retinex_decomposition(img)
+        R, L_target = self.retinex_decomposition(img)
 
         # dim the luminance
-        L *= np.random.beta(alpha, 100 - alpha)
+        L = L_target * np.random.beta(alpha, 100 - alpha)
 
         # apply s-shape transformation
         L = self.s_shape_transformation(L)
@@ -109,10 +109,10 @@ class MCBFSTransform:
         R, L = self.retinex_decomposition(self.bayer_filter_mc(R, L))
 
         # apply inverse s-shape transformation
-        L = self.inverse_s_shape_transformation(L)
+        L_source = self.inverse_s_shape_transformation(L)
 
         # recombine
-        return np.clip((R * L[:, :, None]) * 3, 0, 1)
+        return np.clip((R * L[:, :, None]) * 3, 0, 1), L_source.mean(), L_target.mean()
 
     def __call__(self, light, alpha=None):
         if alpha is None:
@@ -121,7 +121,8 @@ class MCBFSTransform:
         if self.transforms:
             light = self.transforms(light)
 
-        dark = (255 * self.pollute(light, alpha)).astype(np.uint8)
+        dark, source_lightness, target_lightness = self.pollute(light, alpha)
+        dark = (255 * dark).astype(np.uint8)
 
         # histogram equalization
         hist = A.augmentations.functional.equalize(dark) / 255.0
@@ -141,4 +142,6 @@ class MCBFSTransform:
         return {
             "image": torch.from_numpy(dark).float(),
             "target": torch.from_numpy(light).float(),
+            "source_lightness": torch.from_numpy(source_lightness).float(),
+            "target_lightness": torch.from_numpy(target_lightness).float(),
         }

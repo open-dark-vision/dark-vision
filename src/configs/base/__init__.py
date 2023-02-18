@@ -1,6 +1,7 @@
 from .data import (  # noqa: F401
     ExDarkDatasetConfig,
     LOLDatasetConfig,
+    COCODatasetConfig,
     SICEDatasetConfig,
     SupplementaryDatasetConfig,
     TransformConfig,
