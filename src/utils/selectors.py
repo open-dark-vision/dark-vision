@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
+import torchmetrics
 
 from src.configs.base import (  # noqa: I900
     Loss,
@@ -66,6 +67,8 @@ def get_optimizers(model: pl.LightningModule, config: OptimizerConfig):
 def get_loss(config: LossConfig, **kwargs):
     if config.name == Loss.L1:
         return nn.L1Loss(reduction=config.reduction)
+    if config.name == Loss.MSE:
+        return torchmetrics.MeanSquaredError()
     elif config.name == Loss.SCI:
         return SCILoss(finetune=kwargs["finetune"])
     else:

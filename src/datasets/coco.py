@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, Dataset, random_split
 
 from src.configs.base import COCODatasetConfig  # noqa: I900
 from src.datasets.meta import PairedImageWithLightnessInput  # noqa: I900
-from src.transforms import load_transforms, MCBFSTransform  # noqa: I900
+from src.transforms import MCBFSTransform, load_transforms  # noqa: I900
 from src.utils.image import read_image_cv2  # noqa: I900
 
 
@@ -33,14 +33,14 @@ class COCO(Dataset):
         transformed = self.transform(light=image)
         image, target = transformed["image"], transformed["target"]
 
-        source_lightness = transformed['source_lightness']
-        target_lightness = transformed['target_lightness']
+        source_lightness = transformed["source_lightness"]
+        target_lightness = transformed["target_lightness"]
 
         return PairedImageWithLightnessInput(
             image=image,
             target=target,
             source_lightness=source_lightness,
-            target_lightness=target_lightness
+            target_lightness=target_lightness,
         )
 
 
@@ -74,6 +74,7 @@ class COCODataModule(pl.LightningDataModule):
     def train_dataloader(self):
         return DataLoader(
             self.train_ds,
+            shuffle=True,
             batch_size=self.config.batch_size,
             pin_memory=self.config.pin_memory,
             num_workers=self.config.num_workers,

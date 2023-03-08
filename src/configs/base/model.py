@@ -43,6 +43,13 @@ class LLFlowModelConfig(ModelConfig):
 
 
 @dataclass
+class BriDiMoModelConfig(ModelConfig):
+    name: str = "BriDiMo"
+    in_channels: int = 9
+    bilinear: bool = False
+
+
+@dataclass
 class SCIModelConfig(ModelConfig):
     name: str = "SCI"
     stage: int = 3

@@ -3,6 +3,10 @@ from albumentations.pytorch.transforms import ToTensorV2
 
 from src.configs.base import Transform, TransformConfig  # noqa: I900
 from src.transforms.llflow_transform import LLFlowTransform  # noqa: I900
+from src.transforms.mcbfs_transform import (  # noqa: I900
+    MCBFSTransform,
+    PairedTransformForBriDiMo,
+)
 
 
 def load_transforms(transform_config: TransformConfig):
@@ -20,6 +24,33 @@ def load_transforms(transform_config: TransformConfig):
         transforms = (
             LLFlowTransform(train=True, crop_size=transform_config.image_size),
             LLFlowTransform(train=False, crop_size=transform_config.image_size),
+        )
+    elif transform_config.name == Transform.MCBFS:
+        train_transform = A.Compose(
+            [
+                A.RandomCrop(transform_config.image_size, transform_config.image_size),
+                A.HorizontalFlip(),
+                A.ColorJitter(),
+            ]
+        )
+
+        test_transform = A.Compose(
+            [A.CenterCrop(transform_config.image_size, transform_config.image_size)]
+        )
+
+        transforms = (
+            MCBFSTransform(transforms=train_transform),
+            MCBFSTransform(
+                transforms=test_transform, alpha_const=transform_config.test_alpha
+            ),
+        )
+    elif transform_config.name == Transform.BDM_FINETUNE:
+        transforms = (
+            PairedTransformForBriDiMo(
+                flip_prob=transform_config.flip_prob,
+                crop_size=transform_config.image_size,
+            ),
+            PairedTransformForBriDiMo(test=True),
         )
     elif transform_config.name == Transform.FLIP_NO_RESIZE:
         transforms = flip_no_resize_transform(

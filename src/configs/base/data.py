@@ -13,6 +13,17 @@ class TransformConfig:
 
 
 @dataclass
+class BriDiMoTransformConfig(TransformConfig):
+    test_alpha: int = 10
+
+
+@dataclass
+class BriDiMoFinetuneTransformConfig(TransformConfig):
+    flip_prob: float = 0.5
+    image_size: int = 256
+
+
+@dataclass
 class DatasetConfig:
     name: str = MISSING
     path: str = MISSING
@@ -39,7 +50,7 @@ class LOLDatasetConfig(DatasetConfig):
 @dataclass
 class COCODatasetConfig(DatasetConfig):
     name: str = "COCO-2017-unlabeled"
-    path: str = "data/unlabeled2017"
+    path: str = "data/unlabeled2017/unlabeled2017"
 
 
 @dataclass

@@ -3,6 +3,7 @@ from enum import Enum
 
 class Loss(str, Enum):
     L1 = "l1"
+    MSE = "mse"
     SCI = "sci"
     NLL = "nll"
 
@@ -11,6 +12,8 @@ class Transform(str, Enum):
     DEVELOPMENT = "development"
     FLIP = "flip"
     LLFLOW = "LLFlow"
+    MCBFS = "mcbfs"
+    BDM_FINETUNE = "bridimo_finetune"
     FLIP_NO_RESIZE = "flip_no_resize"
     FLIP_CENTER_CROP = "flip_center_crop"
 
