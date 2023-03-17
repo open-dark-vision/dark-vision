@@ -30,6 +30,11 @@ def load_transforms(transform_config: TransformConfig):
             image_size=transform_config.image_size,
             pair_transform=transform_config.pair_transform,
         )
+    elif transform_config.name == Transform.FLIP_NO_SCALE:
+        transforms = flip_no_scale_transform(
+            image_size=transform_config.image_size,
+            pair_transform=transform_config.pair_transform,
+        )
     else:
         raise ValueError(f"Transform {transform_config.name} not found.")
 
@@ -110,6 +115,34 @@ def flip_center_crop_transform(image_size: int = 512, pair_transform: bool = Tru
     test_transform = A.Compose(
         [
             A.CenterCrop(image_size, image_size, always_apply=True),
+            A.Normalize(mean=0, std=1),
+            ToTensorV2(),
+        ],
+        additional_targets={"target": "image"} if pair_transform else {},
+    )
+
+    return train_transform, test_transform
+
+
+def flip_no_scale_transform(image_size: int = 256, pair_transform: bool = True):
+    transform_size = image_size + 32
+    train_transform = A.Compose(
+        [
+            A.LongestMaxSize(transform_size),
+            A.PadIfNeeded(transform_size, transform_size),
+            A.RandomCrop(image_size, image_size, always_apply=True),
+            A.HorizontalFlip(p=0.5),
+            A.VerticalFlip(p=0.5),
+            A.Normalize(mean=0, std=1),
+            ToTensorV2(),
+        ],
+        additional_targets={"target": "image"} if pair_transform else {},
+    )
+
+    test_transform = A.Compose(
+        [
+            A.LongestMaxSize(image_size),
+            A.PadIfNeeded(image_size, image_size),
             A.Normalize(mean=0, std=1),
             ToTensorV2(),
         ],
