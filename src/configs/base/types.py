@@ -5,6 +5,7 @@ class Loss(str, Enum):
     L1 = "l1"
     SCI = "sci"
     NLL = "nll"
+    KIND = "kind"
     CHAR_VGG = "char_vgg"
 
 
@@ -12,6 +13,8 @@ class Transform(str, Enum):
     DEVELOPMENT = "development"
     FLIP = "flip"
     LLFLOW = "LLFlow"
+    KIND = "KinD"
+    KIND_DECOM = "KinD_decom"
     FLIP_NO_RESIZE = "flip_no_resize"
     FLIP_CENTER_CROP = "flip_center_crop"
     FLIP_NO_SCALE = "flip_no_scale"
@@ -27,6 +30,7 @@ class Scheduler(str, Enum):
     CONSTANT = "constant"
     COSINE = "cosine"
     ONE_CYCLE = "one_cycle"
+    KIND = "kind"
 
 
 class PairSelectionMethod(str, Enum):
