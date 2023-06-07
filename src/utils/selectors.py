@@ -49,6 +49,11 @@ def get_optimizers(model: pl.LightningModule, config: OptimizerConfig):
             optimizer=optimizer,
             T_max=model.trainer.estimated_stepping_batches,
         )
+    elif config.scheduler.name == Scheduler.KIND:
+        scheduler1 = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[800, 1250, 1500], gamma=0.5)#torch.optim.lr_scheduler.ConstantLR(optimizer, factor=1, total_iters=800)
+        scheduler2 = torch.optim.lr_scheduler.ConstantLR(optimizer, factor=0.1, total_iters=500)
+        scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer=optimizer, schedulers=[scheduler1, scheduler2], milestones=[1500])
+        
     else:
         raise NotImplementedError(
             f"Scheduler {config.scheduler.name} is not implemented."
