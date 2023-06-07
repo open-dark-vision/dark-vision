@@ -30,7 +30,7 @@ iat_config = ExperimentConfig(
         scheduler=SchedulerConfig(name=Scheduler.COSINE, frequency=1),
     ),
     loss=LossConfig(name=Loss.L1, reduction="mean"),
-    device="cuda",
+    device="cpu", #'cuda'
     epochs=400,
 )
 
