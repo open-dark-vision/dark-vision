@@ -44,6 +44,18 @@ class PairSelector:
         idx = len(sequence) // 2
         return sequence[idx], target
 
+    def random_halfexp(self, sequence: List[Path]) -> Tuple[Path, Path]:
+        target = sequence.pop(len(sequence) // 2 + 1)
+        if self.max_exposure_ratio < 1.0:
+            sequence = self.sample_under_exposure(sequence)
+
+        idx = random.randint(0, len(sequence) - 1)
+        return sequence[idx], target
+
+    def darkest_halfexp(self, sequence: List[Path]) -> Tuple[Path, Path]:
+        target = sequence.pop(len(sequence) // 2 + 1)
+        return sequence[0], target
+
     def __call__(self, sequence: List[Path], target: Path) -> Tuple[Path, Path]:
         if self.method == PairSelectionMethod.RANDOM_NEXT:
             return self.random_next(sequence)
@@ -51,6 +63,10 @@ class PairSelector:
             return self.random_target(sequence, target)
         elif self.method == PairSelectionMethod.HALFEXP_TARGET:
             return self.halfexp_target(sequence, target)
+        elif self.method == PairSelectionMethod.RANDOM_HALFEXP:
+            return self.random_halfexp(sequence)
+        elif self.method == PairSelectionMethod.DARKEST_HALFEXP:
+            return self.darkest_halfexp(sequence)
         else:
             raise ValueError(f"unknown selection method: {self.method}")
 
