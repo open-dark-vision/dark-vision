@@ -65,10 +65,11 @@ class SCI(nn.Module):
             return self.forward_calibrate(images)
 
     def forward_calibrate(self, images):
-        ilist, rlist, attlist = [], [], []
+        ilist, rlist, inlist, attlist = [], [], [], []
         input_op = images
 
         for _ in range(self.stage):
+            inlist.append(input_op)
             illumination = self.enhance(input_op)
 
             reflectance = images / illumination
@@ -81,7 +82,7 @@ class SCI(nn.Module):
             rlist.append(reflectance)
             attlist.append(torch.abs(att))
 
-        return ilist, rlist, attlist
+        return ilist, rlist, inlist, attlist
 
 
 class LitSCI(pl.LightningModule):
@@ -111,11 +112,12 @@ class LitSCI(pl.LightningModule):
 
         if self.finetune:
             illumination, reflectance = self(images)
+            loss = self.loss_fn(images, illumination)
         else:  # calibrate, returns lists
-            illumination, reflectance, _ = self(images)  # reflectance or enhancement?
-            reflectance = reflectance[0]  # get first stage as in the article
+            illumination, reflectance, inputs, _ = self(images)
+            reflectance = reflectance[0]
+            loss = self.loss_fn(inputs, illumination)
 
-        loss = self.loss_fn(images, illumination)
         return loss, illumination, reflectance
 
     def training_step(self, batch, batch_idx):
