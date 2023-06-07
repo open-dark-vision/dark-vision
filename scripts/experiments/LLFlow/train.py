@@ -6,6 +6,7 @@ from pytorch_lightning.callbacks import (
     RichProgressBar,
 )
 
+
 from src.configs.experiments import llflow_config as cfg  # noqa: I900
 from src.datasets import LOLDataModule  # noqa: I900
 from src.models import LitLLFlow  # noqa: I900
