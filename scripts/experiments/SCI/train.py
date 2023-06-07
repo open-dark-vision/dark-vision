@@ -12,6 +12,7 @@ from src.datasets import SICEDataModule  # noqa: I900
 from src.models import LitSCI  # noqa: I900
 
 cfg = OmegaConf.structured(cfg)
+sice_dm = SICEDataModule(config=cfg.dataset)
 
 model = LitSCI(config=cfg)
 callbacks = [
