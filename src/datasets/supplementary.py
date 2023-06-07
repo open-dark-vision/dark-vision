@@ -17,7 +17,7 @@ from src.utils.image import read_image_cv2  # noqa: I900
 class Supplementary(Dataset):
     def __init__(self, root: Path, dataset: SupplementaryDataset, transform=None):
         self.root = self.select_dataset(root, dataset)
-        self.images_paths = list(
+        self.images_paths = sorted(
             self.root.glob("**/*.[JPG PNG jpg png JPEG jpeg bmp]*")
         )
 
@@ -65,6 +65,7 @@ class SupplementaryDataModule(pl.LightningDataModule):
             batch_size=self.config.batch_size,
             pin_memory=self.config.pin_memory,
             num_workers=self.config.num_workers,
+            shuffle=False,
         )
 
     def predict_dataloader(self):
