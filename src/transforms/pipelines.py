@@ -1,8 +1,8 @@
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
-
+import numpy as np
 from src.configs.base import Transform, TransformConfig  # noqa: I900
-from src.transforms.custom_transforms import LLFlowTransform  # noqa: I900
+from src.transforms.custom_transforms import LLFlowTransform, KinDTransform, KinDTransform_DECOM  # noqa: I900
 
 
 def load_transforms(transform_config: TransformConfig):
@@ -34,6 +34,18 @@ def load_transforms(transform_config: TransformConfig):
         transforms = flip_no_scale_transform(
             image_size=transform_config.image_size,
             pair_transform=transform_config.pair_transform,
+        )
+    elif transform_config.name == Transform.KIND:
+        mode = np.random.randint(8)
+        transforms = (
+            KinDTransform(train=True, mode = mode, crop_size=transform_config.image_size),
+            KinDTransform(train=False, mode = mode, crop_size=transform_config.image_size),
+        )
+    elif transform_config.name == Transform.KIND_DECOM:
+        mode = np.random.randint(8)
+        transforms = (
+            KinDTransform_DECOM(train=True, mode = mode, crop_size=transform_config.image_size),
+            KinDTransform_DECOM(train=False, mode = mode, crop_size=transform_config.image_size),
         )
     else:
         raise ValueError(f"Transform {transform_config.name} not found.")
