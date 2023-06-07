@@ -31,3 +31,12 @@ class LossConfig:
 class LLFlowLossConfig(LossConfig):
     name: Loss = Loss.NLL
     p: float = 0.2
+
+@dataclass
+class KinDLossConfig(LossConfig):
+    name: Loss = Loss.KIND
+    p: float = 0.2
+
+
+
+
