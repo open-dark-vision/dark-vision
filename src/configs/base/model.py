@@ -44,6 +44,11 @@ class LLFlowModelConfig(ModelConfig):
 
 
 @dataclass
+class KinDModelConfig(ModelConfig):
+    name: str = "KinD"
+    ratio: float = 0.5
+
+@dataclass
 class SCIModelConfig(ModelConfig):
     name: str = "SCI"
     stage: int = 3
