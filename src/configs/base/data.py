@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
 from omegaconf import MISSING
+from typing import Optional, Tuple
+
 
 from .types import PairSelectionMethod, SupplementaryDataset, Transform
 
@@ -11,7 +13,6 @@ class TransformConfig:
     image_size: int = 256
     pair_transform: bool = False
 
-
 @dataclass
 class DatasetConfig:
     name: str = MISSING
@@ -21,6 +22,8 @@ class DatasetConfig:
     pin_memory: bool = True
     num_workers: int = 4
     transform: TransformConfig = TransformConfig()
+    predict_on_train: bool = False
+    predict_on_val: bool = False
 
 
 @dataclass
@@ -33,7 +36,9 @@ class ExDarkDatasetConfig(DatasetConfig):
 class LOLDatasetConfig(DatasetConfig):
     name: str = "LOL"
     path: str = "data/LOL"
+    path_decom: Optional[str] = "data/LOL_decom"
     preload: bool = False
+    load_paths: bool = False
 
 
 @dataclass
