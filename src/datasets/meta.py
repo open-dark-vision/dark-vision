@@ -10,6 +10,15 @@ class PairedImageInput(TypedDict):
     target: Image
 
 
+class SixFoldImageInput(TypedDict):
+    image: Image
+    target: Image
+    reflect_high: Image
+    reflect_low: Image
+    illum_high: Image
+    illum_low: Image
+
+
 class AnnotatedBBoxImageInput(TypedDict):
     """Annotated Bounding Box Image Input.
 
