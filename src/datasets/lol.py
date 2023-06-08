@@ -119,9 +119,9 @@ class LOLDataModule(pl.LightningDataModule):
             load_paths= self.config.load_paths,
         )
 
-
-        self.images_names_train = self.train_ds.images_paths
-        self.targets_names_train = self.train_ds.targets_paths
+        if self.config.load_paths:
+            self.images_names_train = self.train_ds.images_paths
+            self.targets_names_train = self.train_ds.targets_paths
         
         
         self.val_ds = LOL(
@@ -133,8 +133,9 @@ class LOLDataModule(pl.LightningDataModule):
             load_paths= self.config.load_paths,
         )
 
-        self.images_names_val = self.val_ds.images_paths
-        self.targets_names_val = self.val_ds.targets_paths
+        if self.config.load_paths:
+            self.images_names_val = self.val_ds.images_paths
+            self.targets_names_val = self.val_ds.targets_paths
         
         self.test_ds = LOL(
             self.root,
@@ -144,8 +145,9 @@ class LOLDataModule(pl.LightningDataModule):
             load_paths= self.config.load_paths,
         )
 
-        self.images_names_test = self.test_ds.images_paths
-        self.targets_names_test = self.test_ds.targets_paths
+        if self.config.load_paths:
+            self.images_names_test = self.test_ds.images_paths
+            self.targets_names_test = self.test_ds.targets_paths
 
     def train_dataloader(self):
         return DataLoader(
