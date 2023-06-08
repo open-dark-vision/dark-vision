@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import  torch.nn.functional as F
-import pytorch_ssim
 from torch.autograd import Variable
 import numpy as np
 from math import exp
