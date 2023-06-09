@@ -196,7 +196,7 @@ class LitKinD_illumina(pl.LightningModule):
         self.model = IlluminationAdjustNet()
         self.loss_fn = KinDLoss_illumina()
 
-        self.ratio = torch.Tensor([config.model.ratio])
+        self.ratio = torch.Tensor([config.model.ratio]).to(self.config.device)
 
     def forward(self, x):
         return self.model(x)
