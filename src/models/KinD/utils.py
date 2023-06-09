@@ -137,9 +137,9 @@ class KinDLoss_restore(nn.Module):
 
 
 
-    def ssim(self,img1, img2, window_size = 11, size_average = True):
+    def ssim(self,img1, img2, device, window_size = 11, size_average = True):
         (_, channel, _, _) = img1.size()
-        window = self.create_window(window_size, channel)
+        window = self.create_window(window_size, channel).to(device)
         return self._ssim(img1, img2, window, window_size, channel, size_average)
 
 
@@ -192,13 +192,13 @@ class KinDLoss_restore(nn.Module):
 
         output_r_1 = output_r[:,0:1,:,:]
         input_high_r_1 = input_high_r[:,0:1,:,:]
-        ssim_r_1 = self.ssim(output_r_1, input_high_r_1)
+        ssim_r_1 = self.ssim(output_r_1, input_high_r_1, device)
         output_r_2 = output_r[:,1:2,:,:]
         input_high_r_2 = input_high_r[:,1:2,:,:]
-        ssim_r_2 = self.ssim(output_r_2, input_high_r_2)
+        ssim_r_2 = self.ssim(output_r_2, input_high_r_2, device)
         output_r_3 = output_r[:,2:3,:,:]
         input_high_r_3 = input_high_r[:,2:3,:,:]
-        ssim_r_3 = self.ssim(output_r_3, input_high_r_3)
+        ssim_r_3 = self.ssim(output_r_3, input_high_r_3, device)
         ssim_r = (ssim_r_1 + ssim_r_2 + ssim_r_3)/3.0
         loss_ssim1 = 1-ssim_r
         return loss_ssim1
