@@ -4,6 +4,7 @@ from .data import (  # noqa: F401
     SICEDatasetConfig,
     SupplementaryDatasetConfig,
     TransformConfig,
+    DataSegmentationConfig
 )
 from .experiment import ExperimentConfig  # noqa: F401
 from .model import (  # noqa: F401

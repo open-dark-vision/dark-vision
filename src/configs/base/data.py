@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-
+from dataclasses import dataclass, field
+from transformers import SegformerFeatureExtractor
 from omegaconf import MISSING
 from typing import Optional, Tuple
 
@@ -21,7 +21,7 @@ class DatasetConfig:
     val_size: float = 0.1
     pin_memory: bool = True
     num_workers: int = 4
-    transform: TransformConfig = TransformConfig()
+    transform: Optional[TransformConfig] = TransformConfig()
     predict_on_train: bool = False
     predict_on_val: bool = False
 
@@ -48,6 +48,18 @@ class SICEDatasetConfig(DatasetConfig):
     max_exposure_ratio: float = 1.0
     train_pair_selection_method: PairSelectionMethod = PairSelectionMethod.RANDOM_TARGET
     test_pair_selection_method: PairSelectionMethod = PairSelectionMethod.HALFEXP_TARGET
+
+
+@dataclass
+class DataSegmentationConfig(DatasetConfig):
+    name: str = "Segmentation"
+    path: str = "data/Segmentation"
+    id2label_file: Optional[str] = "data/Segmentation/id2label.json"
+    dic_class: dict = field(default_factory=dict)
+    preload: bool = False
+    train: bool = True
+    predict: bool = False
+    test: bool = False
 
 
 @dataclass
